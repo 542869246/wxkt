@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CollectionMapper">
+	
+	<!-- 查询分组列表 -->
+	<select id="listGroup"  parameterType="pd" resultType="com.flc.entity.drove.Group" >
+		select 
+			*
+		from 
+		collection_group
+		where 1 = 1
+		<if test="group_type != null">
+			and group_type = #{pd.group_type} 
+		</if>
+		<if test="member_id != null">
+			and member_id = #{pd.member_id} 
+		</if>
+	</select>
+	
+	
+	
+	<!-- 查询分组详情 -->
+	<select id="findGroupById"  parameterType="pd" resultType="com.flc.entity.drove.Group" >
+		select 
+			*
+		from 
+		collection_group
+		where 
+			group_id = #{group_id}
+	</select>
+	
+	<!-- 查询收藏列表 -->
+	<select id="listCollection"  parameterType="pd" resultType="com.flc.entity.drove.Collection" >
+		select 
+			*
+		from 
+		collection
+		where 1 = 1
+		<if test="group_id != null">
+			and group_id = #{pd.group_id} 
+		</if>
+		<if test="member_id != null">
+			and member_id = #{pd.member_id} 
+		</if>
+	</select>
+	
+	
+	<!-- 新增分组 -->
+	<insert id="saveGroup" parameterType="pd">
+		insert into collection_group (
+			group_id,
+			group_type,
+			group_name,
+			member_id
+		) values (
+			#{group_id},
+			#{group_type},
+			#{group_name},
+			#{member_id}
+		)
+	</insert>
+	
+	
+	<!-- 修改分组 -->
+	<update id="editGroup" parameterType="pd">
+		update  collection_group
+		set group_name = #{group_name}
+		where group_id = #{group_id}
+	</update>
+	
+	
+	
+	
+	<!-- 新增收藏 -->
+	<insert id="saveCollection" parameterType="pd">
+		insert into collection (
+			collection_id,
+			member_id,
+			group_id,
+			business_id,
+			business_name,
+			business_tel
+		) values (
+			#{collection_id},
+			#{member_id},
+			#{group_id},
+			#{business_id},
+			#{business_name},
+			#{business_tel}
+		)
+	</insert>
+	
+	
+	<!-- 取消收藏 -->
+	<delete id="deleteCollection" parameterType="String">
+		delete from collection
+		where 
+			collection_id = #{collection_id}
+	</delete>
+	
+	<!-- 删除分组 -->
+	<delete id="deleteGroup" parameterType="String">
+		delete from collection_group
+		where 
+			group_id = #{group_id}
+	</delete>
+</mapper>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ActivitycommentMapper">
+
+	<!--表名 -->
+	<sql id="tableName">
+		SCHOOL_ACTIVITY_COMMENT
+	</sql>
+
+	<!-- 字段 -->
+	<sql id="Field">
+		ACTIVITY_ID,
+		CRITICISM_ID,
+		CRITICISM_CONTENT,
+		REPLY_ID,
+		REPLY_CONTENT,
+		comment_id,
+		criticism_time,
+		reply_time
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{ACTIVITY_ID},
+		#{CRITICISM_ID},
+		#{CRITICISM_CONTENT},
+		#{REPLY_ID},
+		#{REPLY_CONTENT},
+		#{comment_id},
+		#{criticism_time},
+		#{reply_time}
+	</sql>
+
+	<!-- 新增 -->
+	<insert id="save" parameterType="pd">
+		insert into
+		<include refid="tableName"></include>
+		(
+		<include refid="Field"></include>
+		) values (
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where
+		comment_id = #{comment_id}
+	</delete>
+
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		<!-- ACTIVITY_ID = #{ACTIVITY_ID},
+		CRITICISM_ID = #{CRITICISM_ID},
+		CRITICISM_CONTENT = #{CRITICISM_CONTENT}, -->
+		REPLY_ID = #{REPLY_ID},
+		REPLY_CONTENT = #{REPLY_CONTENT},
+		<!-- comment_time=#{comment_time}, -->
+		reply_time=#{REPLY_TIME}
+		where
+		comment_id = #{comment_id}
+	</update>
+
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where
+		comment_id = #{comment_id}
+	</select>
+
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select ac.comment_id,
+		ac.activity_id,
+		ac.criticism_id,
+		ac.criticism_content,
+		ac.reply_id,
+		ac.reply_content,
+		ac.criticism_time,
+		ac.reply_time,
+		su.USER_ID,
+		su.NAME,
+		wu.users_id,
+		wu.users_wechat_nickname,
+		wu.users_photo from school_activity_comment ac
+LEFT JOIN web_users wu
+on wu.users_id=ac.criticism_id
+LEFT JOIN sys_user su
+on su.USER_ID=ac.reply_id
+		where 1=1 
+		<if test="pd.ACTIVITY_ID!= null and pd.ACTIVITY_ID != ''">
+			and ac.activity_id = #{pd.ACTIVITY_ID}
+		</if>
+		order by ac.criticism_time desc
+
+		<!-- select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="pd.ACTIVITY_ID!= null and pd.ACTIVITY_ID != ''">
+			and
+			(
+			
+			ACTIVITY_ID =#{pd.ACTIVITY_ID}
+			)
+		</if> -->
+	</select>
+
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+	</select>
+
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where
+		comment_id in
+		<foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+</mapper>

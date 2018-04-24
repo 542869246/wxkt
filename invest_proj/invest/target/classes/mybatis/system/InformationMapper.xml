@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="InformationMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		DEP_INFORMATION
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		INFORMATION_ID,
+		INFORMATION_MESSAGETIME,
+		INFORMATION_CONTENT,	
+		INFORMATION_INFO_ID,	
+		INFORMATION_CREATEBY,	
+		INFORMATION_CREATETIME,	
+		INFORMATION_PDFURL
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{INFORMATION_ID},	
+		#{INFORMATION_MESSAGETIME},
+		#{INFORMATION_CONTENT},	
+		#{INFORMATION_INFO_ID},	
+		#{INFORMATION_CREATEBY},	
+		#{INFORMATION_CREATETIME},	
+		#{INFORMATION_PDFURL}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			INFORMATION_ID = #{INFORMATION_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			<!-- INFORMATION_ID = #{INFORMATION_ID}, -->
+			INFORMATION_CONTENT = #{INFORMATION_CONTENT},
+			INFORMATION_MESSAGETIME=#{INFORMATION_MESSAGETIME},
+			<!-- INFORMATION_INFO_ID = #{INFORMATION_INFO_ID},
+			INFORMATION_CREATEBY = #{INFORMATION_CREATEBY}, -->
+			INFORMATION_PDFURL = #{INFORMATION_PDFURL}
+		where 
+		INFORMATION_ID = #{INFORMATION_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		SELECT * 
+			FROM `dep_information` di INNER JOIN `products_productsinfo` pp 
+			ON di.INFORMATION_INFO_ID  = pp.PRODUCTSINFO_ID
+			<!-- INNER JOIN `products_groupby` pg
+			ON pg.GROUPBY_PRODUCTS_ID = di.INFORMATION_ID -->
+		where 
+			INFORMATION_ID = #{INFORMATION_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		SELECT * 
+			FROM `dep_information` di LEFT JOIN `products_productsinfo` pp 
+			ON di.INFORMATION_INFO_ID  = pp.PRODUCTSINFO_ID
+			<!-- INNER JOIN `products_groupby` pg 
+			ON pg.GROUPBY_PRODUCTS_ID = di.INFORMATION_ID -->
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and INFORMATION_CONTENT like CONCAT('%', #{pd.keywords},'%')
+		</if>
+		<if test="pd.ATTR_TYPEID!= null and pd.ATTR_TYPEID != ''"><!-- 关键词检索 -->
+			AND pg.GROUPBY_USER_ID = #{pd.ATTR_TYPEID}
+		</if>
+		<if test="pd.lastStart!=null and pd.lastStart!=''"><!-- 登录时间检索 -->
+			<!-- and str_to_date(NEWINFO_CREATETIME,'%Y-%m-%d')=#{pd.NEWINFO_CREATETIME} -->
+			and INFORMATION_MESSAGETIME &gt;= #{pd.lastStart} 
+		</if>
+		<if test="pd.lastEnd!=null and pd.lastEnd!=''"><!-- 登录时间检索 -->
+			and INFORMATION_MESSAGETIME &lt;= #{pd.lastEnd} 
+		</if>	
+		<if test="pd.proid!= null and pd.proid != ''"><!-- 关键词检索 -->
+			and PRODUCTSINFO_ID = #{pd.proid}
+		</if>
+		<if test="pd.proRelId!= null and pd.proRelId != ''"><!-- 关键词检索 -->
+			and INFORMATION_INFO_ID  &lt;&gt; #{pd.proRelId} or INFORMATION_INFO_ID is NULL
+		</if>
+	</select>
+	
+	
+		<!-- 列表 -->
+	<select id="datalistPageMess" parameterType="page" resultType="pd">
+		SELECT * 
+			FROM `dep_information` di LEFT JOIN `products_productsinfo` pp 
+			ON di.INFORMATION_INFO_ID  = pp.PRODUCTSINFO_ID
+		where 1=1
+		<if test="pd.PRODUCTS_NAME!= null and pd.PRODUCTS_NAME != ''"><!-- 关键词检索 -->
+			and PRODUCTS_NAME like CONCAT('%', #{pd.PRODUCTS_NAME},'%')
+		</if>
+		<if test="pd.lastLoginStart!=null and pd.lastLoginStart!=''"><!-- 登录时间检索 -->
+				<!-- and str_to_date(NEWINFO_CREATETIME,'%Y-%m-%d')=#{pd.NEWINFO_CREATETIME} -->
+				and INFORMATION_CREATETIME &gt;= #{pd.lastLoginStart} 
+		</if>
+		<if test="pd.lastLoginEnd!=null and pd.lastLoginEnd!=''"><!-- 登录时间检索 -->
+				and INFORMATION_CREATETIME &lt;= #{pd.lastLoginEnd} 
+		</if>
+		
+		
+		
+		
+		<if test="pd.INFORMATION_INFO_ID!=null and pd.INFORMATION_INFO_ID!=''">
+			and INFORMATION_INFO_ID=#{pd.INFORMATION_INFO_ID}
+		</if>	
+	</select>
+	
+	
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			INFORMATION_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 放入到默认组中 -->
+	<insert id="saveGroupUser" parameterType="pd">
+		INSERT INTO 
+			`products_groupby` 
+		VALUES
+		(
+			REPLACE(UUID(),'-',''),
+			#{ATTR_TYPEID},
+			#{PRODUCTSINFO_ID}
+		)
+	</insert>
+	
+	
+	<!-- 修改 -->
+	<update id="editGroupUser" parameterType="pd">
+		update
+			products_groupby
+		set 
+			GROUPBY_USER_ID =#{ATTR_TYPEID}
+		where 
+		GROUPBY_ID = #{GROUPBY_ID}
+	</update>
+	
+	<delete id="delGroup" parameterType="pd">
+		DELETE FROM `products_groupby`  WHERE GROUPBY_ID = #{GROUPBY_ID}
+	</delete>
+	
+</mapper>

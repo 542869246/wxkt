@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="LocalspecialtiesMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		LOCAL_SPECIALTIES
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		SPECIALTIES_ID,
+		NAME,
+		IMAGE,
+		URL,
+		REGION_ID,
+		REGION_NAME
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{SPECIALTIES_ID},
+		#{NAME},
+		#{IMAGE},
+		#{URL},
+		#{REGION_ID},
+		#{REGION_NAME}
+	</sql>
+	<!-- 商家列表 -->
+	<select id="localspecialtiesList" parameterType="page" resultType="com.flc.entity.localspecialties.localspecialties">
+		SELECT 
+		<include refid="Field"></include>
+		FROM 
+		<include refid="tableName"></include>
+		WHERE 1 = 1
+	</select>
+</mapper>

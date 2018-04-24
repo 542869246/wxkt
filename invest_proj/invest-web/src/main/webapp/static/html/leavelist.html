@@ -1,0 +1,326 @@
+<style>
+.mui-scroll {
+	padding: 10px;
+}
+
+.mui-table-view {
+	background-color: #FFF3DD;
+}
+
+#OA_task_1>.mui-table-view-cell {
+	background-color: #fff;
+	margin-top: 10px;
+	border-radius: 10px;
+}
+
+#OA_task_1>.mui-table-view-cell:after {
+	height: 0px;
+}
+
+/* #OA_task_1 .mui-slider-handle { */
+/* 	height: 113px; */
+/* } */
+.mui-slider-handle>.mui-badge {
+	font-size: 15px;
+	padding: 0px 10px 0px 15px;
+}
+
+h4 {
+	font-size: 14px;
+}
+
+</style>
+
+
+<ul id="OA_task_1" class="mui-table-view">
+
+</ul>
+
+<!-- <script type="text/javascript" src="static/wx/js/jquery-1.11.3.min.js"></script> -->
+<script>
+	mui.init();
+// 	mui('.mui-scroll-wrapper').scroll({
+// 		deceleration: 0.0005, //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+// 		indicators: true //是否显示滚动条
+// 	});
+	
+	var mask = mui.createMask(function () {
+		var flushStr=`<div class="mui-pull-top-pocket mui-block">
+		<div class="mui-pull">
+		<div class="mui-pull-loading mui-icon mui-spinner"></div>
+		<div class="mui-pull-caption"><p>懂得静观大地开花结果的人</p></div>
+		<div class="mui-pull-caption"><p>决不会为失去的一切而痛心</p></div>
+		</div></div>`
+		$(".mui-backdrop").html(flushStr);
+	    return mask.clickClose;;
+	})
+	mask.show()
+	mask.clickClose = false;
+	mask.clickClose=true;
+	mask.close();
+	
+	mui('#scroll2').scroll().scrollTo(0,0);
+	
+	
+	//补零
+	function p(num){
+	        return num < 10 ? '0' + num: num;
+	}
+	
+	
+	$(function(){
+			var location = (window.location+'').split('/');
+			var basePath = location[0]+'//'+location[2]+'/'+location[3];
+			var url = basePath+'/';
+//	 		展示学生信息列表
+			function showAll(){
+				
+					$.ajax({
+						url:url+'leave/listAll.do',
+						type: "get",
+						dataType: 'json',
+						async: false,
+						success:function(res){
+							$('#OA_task_1').html("")
+							var str=``
+							$.each(res.varList,function(index,item){
+								var da = item.leavedate;
+			    				da = new Date(da);
+			    				var year = da.getFullYear();
+			   				 	var month = p(da.getMonth()+1);
+			  					var date = p(da.getDate());
+			  					var hour = p(da.getHours())
+			 					var min = p(da.getMinutes())
+			  					var sec = p(da.getSeconds())
+			  					var date = [year,month,date].join('-')+' '+[hour,min,sec].join(':')
+								str+=`<li class="mui-table-view-cell mui-media leave_list" >
+								<div class="mui-slider-right mui-disabled">
+									<input type="hidden" value="${item.student_id}" class="student_id"/>
+									<input type="hidden" value="${date}" class="leave_date"/>
+									<a class="mui-btn mui-btn-warning deletAll">删除</a>
+								</div>
+								<div class="mui-slider-handle">
+			<div class="mui-table">
+							<div class="mui-table-cell mui-col-xs-10">
+								<h4 class="mui-ellipsis">学生姓名：${item.student_name}</h4>
+							</div>
+						</div>
+						<div class="mui-table">
+							<div class="mui-table-cell mui-col-xs-10">
+								<p class="mui-h6 mui-ellipsis">请假原因：${item.leavecause }</p>
+								<h6>请假时间：${date}</h6>
+							</div>
+						</div>
+								</div>
+							</li>`
+							})
+							if(res.length==0){
+								str=`<br/><center><p>无数据</p></center>`
+							}
+							
+							$('#OA_task_1').html(str)
+							$('#leavetouch').show()
+							mui('#scroll2').scroll().scrollTo(0,0);
+							
+						},
+						beforeSend:function(){
+							mask.show();
+							mask.clickClose = false;
+						},
+						complete:function(){
+							mask.clickClose = true;
+							mask.close();
+						}
+					})
+			}
+
+			showAll()
+			
+			// 		根据leave_id删除该学生请假信息
+								mui("#OA_task_1").on("tap",".delete_one",function(){
+									var del = $(this)
+										var LEAVE_ID = del.parent().find(".leave_id").val()
+										var btnArray = ['否', '是'];
+			               				mui.confirm('删除该条请假信息？', '删除信息', btnArray, function(e) {
+			                    		if (e.index == 1) {
+											$.ajax({
+												type:'post',
+												url:url+'leave/delete',
+												data:{LEAVE_ID:LEAVE_ID},
+												dataType:'JSON',
+												async: false,
+												success:function(data){
+													del.parent().parent().hide()
+												},
+												error:function(){
+													alert("删除失败")
+												},
+												beforeSend:function(){
+													mask.show();
+													mask.clickClose = false;
+												},
+												complete:function(){
+													mask.clickClose = true;
+													mask.close();
+												}
+											})
+			                    		}
+			               			})
+								})	
+				
+				// 		根据点击的学生获取请假详细信息
+				mui("#OA_task_1").on("tap",".leave_list",function(){
+					var STUDENT_ID = $(this).find(".student_id").val();
+					var LEAVEDATE = $(this).find(".leave_date").val();
+					$.ajax({
+						type:"post",
+						url:url+'leave/listStudent',
+						data:{STUDENT_ID:STUDENT_ID,LEAVEDATE:LEAVEDATE},
+						dataType:"JSON",
+						async: false,
+						success:function(data){
+							$("#OA_task_1").html("");
+							var str=``
+								$.each(data.stuList,function(index,item){
+									var da = item.leavedate;
+				    				da = new Date(da);
+				    				var year = da.getFullYear();
+				   				 	var month = p(da.getMonth()+1);
+				  					var date = p(da.getDate());
+				  					var hour = p(da.getHours())
+				 					var min = p(da.getMinutes())
+				  					var sec = p(da.getSeconds())
+				  					var date = [year,month,date].join('-')
+									str+=`<li class="mui-table-view-cell mui-media" >
+									<div class="mui-slider-right mui-disabled">
+										<input type="hidden" value="${item.leave_id}" class="leave_id"/>
+										<a class="mui-btn mui-btn-warning delete_one">删除</a>
+									</div>
+									<div class="mui-slider-handle">
+				<div class="mui-table">
+								<div class="mui-table-cell mui-col-xs-10">
+									<h4 class="mui-ellipsis">申请人：${item.student_name}</h4>
+									<p class="mui-h6 mui-ellipsis">原因：${item.leavecause }</p>
+
+								</div>
+							</div>
+							<div class="mui-table">
+								<div class="mui-table-cell mui-col-xs-6">
+									<h6>课程：${item.courses_name}</h6>
+									<h6>老师：${item.NAME}</h6>
+								</div>
+								<div class="mui-table-cell mui-col-xs-7 mui-text-left">
+									<h6>教室：${item.classroom_name}</h6>
+									<h6 class="mui-h5">科目：${item.subject_name}</h6>
+								</div>
+							</div>
+							<div class="mui-table">
+								<div class="mui-table-cell mui-col-xs-10">
+									<h6>时间：${date}</h6>
+								</div>
+							</div>
+									</div>
+								</li>`
+								})
+								if(data.length==0){
+									str=`<br/><center><p>无数据</p></center>`
+								}
+								
+								$('#OA_task_1').html(str)
+								$('#leavetouch').show()
+								mui('#scroll2').scroll().scrollTo(0,0);
+								
+						},
+						beforeSend:function(){
+							mask.show();
+							mask.clickClose = false;
+						},
+						complete:function(){
+							mask.clickClose = true;
+							mask.close();
+						}
+					})
+				})
+				
+				//	 		根据学生id和日期删除该学生所有的请假信息
+			mui("#OA_task_1").on("tap",".deletAll",function(){
+					var delAll = $(this);
+					var STUDENT_ID = delAll.parent().find(".student_id").val()
+					var LEAVEDATE = delAll.parent().find(".leave_date").val()
+					var btnArray = ['否', '是'];
+		            mui.confirm('删除该学生的请假信息？', '删除信息', btnArray, function(e) {
+			            if (e.index == 1) {
+							$.ajax({
+								type:'post',
+								url:url+'leave/deleteAll',
+								data:{STUDENT_ID:STUDENT_ID,LEAVEDATE:LEAVEDATE},
+								dataType:'JSON',
+								async: false,
+								success:function(data){
+									showAll()
+								},
+								error:function(){
+									mui.alert("删除失败",'提示','确定')
+								}
+							})
+			            }
+		            })
+		            event.stopPropagation();
+				})
+			
+			//第一个demo，拖拽后显示操作图标，点击操作图标删除元素；
+			mui('#OA_task_1').on('tap', '.mui-btn', function() {
+				
+				var elem = this;
+				var li = elem.parentNode.parentNode;		
+
+				//得到编辑页面
+				var $leaveHtml = $.ajax({
+					url:url+'static/html/leave.html',
+					dataType: 'html'
+				})
+						
+				//根据id得到对象
+				var $leaveInfo= $.ajax({
+					url:url+'leave/goEditJson.do',
+					data:{"LEAVE_ID":$(elem).attr('lid')},
+					dataType: 'json'
+				})
+						
+				//ajax执行完成后执行item1对应$leaveHtml成功回调
+				//先执行两个操作$.ajax，如果都成功了，就运行done()指定的回调函数；如果有一个失败或都失败了，就执行fail()指定的回调函数。
+				//ajax不需要async: true同步
+				$.when($leaveHtml, $leaveInfo)
+				.done(function(item1,item2){
+					//吧页面加载到主页面 赋值
+					$('#item2mobile').find('.mui-scroll2').html(item1[0])
+					$('#leavetouch').hide()
+					$('#leave_cause').val(item2[0].leavecause)
+					
+				})
+//	  			.fail(function(){ mui.alert("真的出错啦！")})
+
+			})
+			
+//	 		添加请假信息
+			$('#addLeave').off("click").on("click",function(){
+				mui('.mui-popover').popover('hide',document.getElementById("leavetouch"));
+				$.ajax({
+					url:url+'static/html/leave.html',
+					dataType: 'html'
+				}).done(function(res){
+					$('#item2mobile').find('.mui-scroll').html(res)
+					$('#leavetouch').hide()
+				})
+//	 			.fail(function(){mui.alert("这次出错啦！")})
+			})
+
+//	 		点击刷新列表
+			$('#flushLeaveList').off("click").on("click",function(){
+				mui('.mui-popover').popover('hide',document.getElementById("leavetouch"));
+				showAll()
+				
+			})
+			
+	})
+</script>

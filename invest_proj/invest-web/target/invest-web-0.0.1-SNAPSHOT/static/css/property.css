@@ -1,0 +1,10 @@
+.property .nav li label{
+	display: none;
+}
+.property .page{
+	display: block;
+}
+.investment .main .info .btn_down{
+	font-size: 12px;
+	background-color: #ccc;
+}

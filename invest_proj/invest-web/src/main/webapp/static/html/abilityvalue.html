@@ -1,0 +1,217 @@
+<style>
+.mui-scroll {
+	padding: 10px;
+}
+
+.mui-table-view {
+	background-color: #FFF3DD;
+}
+
+#OA_task_3>.mui-table-view-cell {
+	background-color: #fff;
+	margin-top: 10px;
+	border-radius: 10px;
+}
+
+#OA_task_3>.mui-table-view-cell:after {
+	height: 0px;
+}
+
+/*  #OA_task_3 .mui-slider-handle {  */
+/*  	height: 113px; */
+/*  }  */
+
+.mui-slider-handle>.mui-badge {
+	font-size: 15px;
+	padding: 0px 10px 0px 15px;
+}
+
+h4 {
+	font-size: 14px;
+}
+</style>
+
+
+<input type="hidden" id="student_id" />
+<input type="hidden" id="subject_id" />
+<input type="hidden" id="start_time"/>
+<input type="hidden" id="end_time"/>
+<ul id="OA_task_3" class="mui-table-view">
+</ul>
+
+<script>
+	mui.init();
+	
+	var mask = mui.createMask(function () {
+		var flushStr=`<div class="mui-pull-top-pocket mui-block">
+		<div class="mui-pull">
+		<div class="mui-pull-loading mui-icon mui-spinner"></div>
+		<div class="mui-pull-caption"><p>懂得静观大地开花结果的人</p></div>
+		<div class="mui-pull-caption"><p>决不会为失去的一切而痛心</p></div>
+		</div></div>`
+		$(".mui-backdrop").html(flushStr);
+	    return mask.clickClose;;
+	})
+	mask.show()
+	mask.clickClose = false;
+	mask.clickClose=true;
+	mask.close();
+
+// 	mui('.mui-scroll-wrapper').scroll({
+// 		deceleration : 0.0005, //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+// 		indicators : true
+// 	//是否显示滚动条
+// 	});
+	
+                                  
+	//补零
+	function p(num) {
+		return num < 10 ? '0' + num : num;
+	}
+	
+// 	获取能力值
+	function ajaxvalue(url){
+		
+		setTimeout(function(){
+			var STUDENT_ID = $("#student_id").val();
+			var SUBJECT_ID = $("#subject_id").val();
+			
+			
+			$.ajax({
+				type:"post",
+				url:url+'ability/findAbility',
+				data:{STUDENT_ID:STUDENT_ID,SUBJECT_ID:SUBJECT_ID},
+				dataType: 'json',
+				success:function(data){
+					$("#OA_task_3").html("");
+					var str=``
+						$.each(data.abilitys,function(index,item){
+							
+							str+=`<li class="mui-table-view-cell mui-media ability_list" >
+							<div class="mui-slider-right mui-disabled">
+								<input type="hidden" value="${item.ability_id}" class="ability_id"/>
+								<input type="hidden" value="${item.course_content}" class="course_content"/>
+								<input type="hidden" value="${item.ability_type_id}" class="ability_type_id"/>
+								
+								<a class="mui-btn mui-btn-warning edit_ability">修改</a>
+							</div>
+							<div class="mui-slider-handle">
+			<div class="mui-table">
+						<div class="mui-table-cell mui-col-xs-10">
+							<h4 class="mui-ellipsis">学生姓名：<span class="student_name">${item.student_name}</span></h4>
+							<h6>科&nbsp&nbsp&nbsp&nbsp目：<span class="subject_name">${item.subject_name}</span></h6>
+
+						</div>
+					</div>
+					<div class="mui-table">
+						<div class="mui-table-cell mui-col-xs-6">
+							<h6>能力值：<span class="ability_value">${item.ability_value}</span></h6>
+						</div>
+						<div class="mui-table-cell mui-col-xs-7 mui-text-left">
+							<h6 class="mui-h5">能力类型：<span class="ability_name">${item.name}</span></h6>
+						</div>
+					</div>
+					<div class="mui-table">
+						<div class="mui-table-cell mui-col-xs-10">
+							<h6>积&nbsp&nbsp&nbsp&nbsp分：<span class="score_value">${item.score_value}</span></h6>
+						</div>
+					</div>
+							</div>
+						</li>`
+						})
+					$('#OA_task_3').html(str)
+					mui('#scroll3').scroll().scrollTo(0,0);
+					
+				},
+				beforeSend:function(){
+					mask.show();
+					mask.clickClose = false;
+				},
+				complete:function(){
+					mask.clickClose = true;
+					mask.close();
+				}
+			})
+		},50)
+	}
+	
+
+	$(function() {
+		var location = (window.location+'').split('/');
+		var basePath = location[0]+'//'+location[2]+'/'+location[3];
+		var url = basePath+'/';
+		
+		ajaxvalue(url)
+		
+		// 		点击刷新列表
+		$('#flushscheduleList').off("click").on("click",function(){
+			mui('.mui-popover').popover('hide',document.getElementById("scheduletouch"));
+			ajaxvalue(url)
+		})
+		
+		
+		
+		$("#return_back").off("click").on("click",function(){
+			mui('.mui-popover').popover('hide',document.getElementById("scheduletouch"));
+			var SUBJECT_ID = $("#subject_id").val();
+			var START_TIME = $("#start_time").val();
+			
+			$.ajax({
+				type:"get",
+				url:url+'static/html/abilitystudent.html',
+				dataType: 'html',
+				success:function(item){
+					$('#item3mobile').find('.mui-scroll3').html(item)
+					$('#scheduletouch').show()
+					$('#subject_id').val(SUBJECT_ID)
+					$('#start_time').val(START_TIME)
+				}
+			})
+		})
+		
+		//				点击修改学生能力信息
+						mui(".ability_list").on('tap','.edit_ability',function(){
+							var STUDENT_ID = $("#student_id").val();
+							var SUBJECT_ID = $("#subject_id").val();
+							var COURSE_TIME = $(this).parent().parent().find(".lesson_starttime").val();
+							var ABILITY_ID = $(this).parent().parent().find(".ability_id").val();
+							var COURSE_CONTENT = $(this).parent().parent().find(".course_content").val();
+							var ABILITY_TYPE_ID = $(this).parent().parent().find(".ability_type_id").val();
+							
+// 							传到能力值添加页面的值
+							var STUDENT_NAME = $(this).parent().parent().find(".student_name").html();
+							var START_TIME = $("#start_time").val();
+							var END_TIME = $("#end_time").val();
+							var SUBJECT_NAME = $(this).parent().parent().find(".subject_name").html()
+							var ABILITY_NAME = $(this).parent().parent().find(".ability_name").html()
+							var SCORE_VALUE = $(this).parent().parent().find(".score_value").html()
+							var ABILITY_VALUE = $(this).parent().parent().find(".ability_value").html()
+							
+							 $.ajax({
+			                    	type:'get',
+									url:url+'static/html/addAbility.html',
+									dataType:'html',
+									success:function(data){
+										$('#item3mobile').find('#OA_task_3').html(data)
+										$("#ability_id").val(ABILITY_ID)
+										$("#student_name").val(STUDENT_NAME)
+										$("#student_id").val(STUDENT_ID)
+										$("#schedule_time").val(START_TIME+"-"+END_TIME)
+										$("#subject_name").val(SUBJECT_NAME)
+										$("#subject_id").val(SUBJECT_ID)
+										$("#course_content").val(COURSE_CONTENT)
+										
+										$("#ability_type_id").val(ABILITY_TYPE_ID)
+										$("#abilitys_name").val(ABILITY_NAME)
+										$("#abilitys_value").val(ABILITY_VALUE)
+										$("#scores_value").val(SCORE_VALUE)
+										
+										$('#scheduletouch').hide()
+			
+									}
+			                    }) 
+			
+								event.stopPropagation();  
+						})
+	})
+</script>

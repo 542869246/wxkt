@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DroveMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		drove
+	</sql>
+	
+		
+	<select id="findById"  parameterType="pd" resultType="com.flc.entity.drove.Drove" >
+		select 
+			*
+		from 
+		<include refid="tableName"></include>
+		where 
+			id = #{id}
+	</select>
+	
+	
+	<select id="listDrove"  parameterType="pd" resultType="com.flc.entity.drove.Drove" >
+		select 
+			*
+		from 
+		<include refid="tableName"></include>
+		where 1 = 1
+		<if test="drove_type != null">
+			and drove_type = #{pd.drove_type} 
+		</if>
+		<if test="region_id != null">
+			and region_id = #{pd.region_id} 
+		</if>
+	</select>
+</mapper>

@@ -1,0 +1,224 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UserinfoMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		WEB_USERINFO
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		USERINFO_ID,	
+		USER_PHONE,	
+		USER_PASSWORD,	
+		USER_ROLE_ID,	
+		USER_CREATETIME,	
+		USER_NICKNAME,	
+		USER_PHOTO,	
+		USER_STATE,	
+		USER_OPPNID,
+		USER_BAOXIAN
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{USERINFO_ID},	
+		#{USER_PHONE},	
+		#{USER_PASSWORD},	
+		#{USER_ROLE_ID},	
+		#{USER_CREATETIME},	
+		#{USER_NICKNAME},	
+		#{USER_PHOTO},	
+		#{USER_STATE},	
+		#{USER_OPPNID},
+		#{USER_BAOXIAN}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	
+	<!-- 批量新增用户购买产品 -->
+	<insert id="batchSave" parameterType="pd">   
+    INSERT INTO USER_INVEST (INVEST_ID,INVEST_USER_ID,INVEST_PRODICTS_ID,INVEST_CREATETIME,INVEST_CREATEBY,INVEST_DICTIONARIESID) 
+     values  
+        (#{INVEST_ID},#{INVEST_USER_ID},#{INVEST_PRODICTS_ID},#{INVEST_CREATETIME},#{INVEST_CREATEBY},#{INVEST_DICTIONARIESID})  
+	</insert>  
+	
+	
+	
+	
+	
+	<insert id="saveUserInvest" parameterType="pd">
+		insert into user_invest (INVEST_ID,INVEST_USER_ID,INVEST_PRODICTS_ID,INVEST_CREATETIME,INVEST_CREATEBY,INVEST_STATE)
+		 values(
+			#{INVEST_ID},
+			#{USERINFO_ID},
+			#{PRODUCTSINFO_ID},
+			#{INVEST_CREATETIME},
+			#{INVEST_CREATEBY},
+			'0'
+		)
+	
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			USERINFO_ID = #{USERINFO_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			
+			USER_ROLE_ID = #{USER_ROLE_ID},
+			USER_NICKNAME = #{USER_NICKNAME},
+			USER_ATTESTATION = #{USER_ATTESTATION},
+			USER_TOTALE = #{USER_TOTALE},
+			USER_BAOXIAN = #{USER_BAOXIAN},
+			USER_GROUPID = #{ATTR_TYPEID}
+		where 
+		USERINFO_ID = #{USERINFO_ID}
+	</update>
+	
+	<!-- 修改一条用户产品关联状态 -->
+	<update id="delProducts" parameterType="pd">
+		update 
+			user_invest 
+		SET 
+			INVEST_STATE = '1' 
+		where 
+			INVEST_ID = #{INVEST_ID}
+	</update>
+	
+	<!-- 修改用户产品关联表的产品类型 -->
+	<update id="updateEndDict" parameterType="pd">
+		update 
+			user_invest 
+		SET 
+			INVEST_DICTIONARIESID = #{INVEST_DICTIONARIESID} 
+		where 
+			INVEST_ID = #{INVEST_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+			WU.*,UL.LEVEL_NAME LEVEL_NAME 
+		from 
+			web_userinfo WU 
+		LEFT JOIN 
+			user_level UL 
+		ON 
+			WU.USER_ROLE_ID = UL.LEVEL_ID 
+		where 
+			WU.USERINFO_ID = #{USERINFO_ID}
+	</select>
+	
+	<!-- 通过用户ID获取用户购买产品列表 带分页-->
+	<select id="datalistPageFindProdictsByUserId" parameterType="page" resultType="pd">
+		SELECT 
+			INVEST_ID,INVEST_USER_ID,PRODUCTS_NAME,INVEST_PRODICTS_ID,INVEST_CREATETIME,sys_dictionaries.NAME
+		from 
+			user_invest UI 
+		LEFT JOIN products_productsinfo PP 
+		ON UI.INVEST_PRODICTS_ID = PP.PRODUCTSINFO_ID
+		LEFT JOIN sys_dictionaries 
+		ON PP.PRODUCTS_TYPE2_ID = sys_dictionaries.DICTIONARIES_ID
+		WHERE 
+			INVEST_USER_ID = #{pd.USERINFO_ID} AND INVEST_STATE != '1'
+		<choose>
+			<when test="pd.FindDICTIONARIES_ID != null and pd.FindDICTIONARIES_ID != '' and pd.FindDICTIONARIES_ID != 'empty'">
+			 	AND INVEST_DICTIONARIESID = #{pd.FindDICTIONARIES_ID}
+			</when>
+			<when test="pd.FindDICTIONARIES_ID == 'empty'">
+			 	AND INVEST_DICTIONARIESID = ''
+			</when>
+		</choose>
+		ORDER BY INVEST_CREATETIME desc
+	</select>
+	
+	<!-- 通过用户ID获取用户购买产品列表 -->
+	<select id="findProdictsByUserIdToAll" parameterType="pd" resultType="pd">
+		SELECT 
+			INVEST_ID,INVEST_USER_ID,PRODUCTS_NAME,INVEST_PRODICTS_ID,INVEST_CREATETIME,INVEST_DICTIONARIESID
+		from 
+			user_invest UI 
+		LEFT JOIN products_productsinfo PP 
+		ON UI.INVEST_PRODICTS_ID = PP.PRODUCTSINFO_ID
+		WHERE 
+			INVEST_USER_ID = #{USERINFO_ID} AND INVEST_STATE != '1'
+	</select>
+	
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		<if test="pd.groupType == '41616e7c15c744eba694d88508e45bd4'">
+			select  us.USER_NICKNAME,pro.PRODUCTS_NAME,leve.lname  
+				from 
+					user_invest inv 
+				INNER JOIN web_userinfo us on us.USERINFO_ID=inv.INVEST_USER_ID
+				INNER JOIN products_productsinfo pro on pro.PRODUCTSINFO_ID=inv.INVEST_PRODICTS_ID 
+				INNER JOIN (select us.USERINFO_ID uid,lev.LEVEL_NAME lname   from web_userinfo us 
+					INNER JOIN user_level lev on lev.LEVEL_ID=us.USER_ROLE_ID) leve
+				on leve.uid=us.USERINFO_ID
+				where 1=1
+		</if>
+		<if test="pd.groupType == '690745a213774651a563f127c6c1ebd9'">
+			select WU.*,UL.LEVEL_NAME LEVEL_NAME 
+				from web_userinfo WU LEFT 
+				JOIN user_level UL ON WU.USER_ROLE_ID = UL.LEVEL_ID  
+				where 1=1 
+			<choose>
+				<when test="pd.keywords!= null and pd.keywords != ''">
+				 	and WU.USER_NICKNAME like CONCAT('%',#{pd.keywords},'%')  
+				</when>
+				<when test="pd.user_groupid != null and pd.user_groupid != ''">
+					and WU.USER_GROUPID = #{pd.user_groupid}
+				</when>
+				<otherwise>
+				 and 1=1
+				</otherwise>
+			</choose>
+		</if>
+		
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select WU.*,UL.LEVEL_NAME from web_userinfo WU LEFT JOIN user_level UL ON WU.USER_ROLE_ID = UL.LEVEL_ID 
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			USERINFO_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 查询所有等级 -->
+	<select id="userLevel" parameterType="page" resultType="pd">
+		select LEVEL_ID,LEVEL_NAME from user_level
+	</select>
+	
+	
+	
+</mapper>

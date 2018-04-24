@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ArrangeMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SCHOOL_ARRANGE
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		ARRANGE_ID,	
+		COURSE_ID,	
+		STUDENT_ID,	
+		ARRANGE_NAME,	
+		CREATEBY,	
+		CREATEDATE,	
+		MODIFYBY,	
+		MODIFYDATE
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{ARRANGE_ID},	
+		#{COURSE_ID},	
+		#{STUDENT_ID},	
+		#{ARRANGE_NAME},	
+		#{CREATEBY},	
+		#{CREATEDATE},	
+		#{MODIFYBY},	
+		#{MODIFYDATE}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	
+<!-- 	批量添加请假信息 -->
+	<insert id="saveAllLeave" parameterType="pd">
+	insert into school_leave(leave_id,student_id,lessons_id,leavecause,leavedate)
+	values (#{leave_id},#{student_id},#{lessons_id},#{leavecause},#{leavedate})
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ARRANGE_ID = #{ARRANGE_ID}
+	</delete>
+	
+	<!-- 根据学生ID删除关联表 -->
+	<delete id="deleteByStu" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			student_id = #{STUDENT_ID}
+	</delete>
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			ARRANGE_ID = #{ARRANGE_ID},
+			COURSE_ID = #{COURSE_ID},
+			STUDENT_ID = #{STUDENT_ID},
+			ARRANGE_NAME = #{ARRANGE_NAME},
+			CREATEBY = #{CREATEBY},
+			CREATEDATE = #{CREATEDATE},
+			MODIFYBY = #{MODIFYBY},
+			MODIFYDATE = #{MODIFYDATE}
+		where 
+		ARRANGE_ID = #{ARRANGE_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			ARRANGE_ID = #{ARRANGE_ID}
+	</select>
+	
+	<!-- 通过课程ID获取下面的学生 -->
+	<select id="listStuById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			COURSE_ID = #{COURSES_ID}
+	</select>
+	
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		SELECT C.COURSES_NAME,S.STUDENT_NAME,A.ARRANGE_ID,S.STUDENT_ID FROM school_arrange A
+		LEFT JOIN web_student S
+		ON A.student_id=S.student_id
+		LEFT JOIN school_course C
+		ON A.course_id=C.courses_id
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+				(
+					S.student_name like concat('%',#{pd.keywords},'%')
+				)
+		</if>
+		<if test="pd.COURSES_ID!= null and pd.COURSES_ID != ''"><!-- 关键词检索根据课程ID筛选 -->
+			and
+				(
+					C.courses_id=#{pd.COURSES_ID}
+				)
+		</if>
+		<if test="pd.STUDENT_ID!= null and pd.STUDENT_ID!= ''"><!-- 关键词检索根据学生ID筛选 -->
+			and
+				(
+					S.student_id=#{pd.STUDENT_ID}
+				)
+		</if>
+	</select>
+	
+	<!--  这个lessons请假的学生-->
+	<select id="leaveList" parameterType="pd" resultType="pd">
+		select leave_id,sl.student_id,lessons_id,leavecause,S.student_name from school_leave sl
+		JOIN web_student S
+		ON sl.student_id=S.student_id
+		where 1=1
+		<if test="lessons_id!= null and lessons_id != ''"><!-- 关键词检索根据课程ID筛选 -->
+			and
+				(
+					lessons_id=#{lessons_id}
+				)
+		</if>
+	</select>
+	
+	
+	<!--  这个lessons没请假的学生-->
+	<select id="lessonsNoLeaveList" parameterType="pd" resultType="pd">
+		SELECT C.COURSES_NAME,S.STUDENT_NAME,A.ARRANGE_ID,S.STUDENT_ID FROM
+		school_arrange A
+		LEFT JOIN web_student S
+		ON A.student_id=S.student_id
+		LEFT JOIN school_course C
+		ON A.course_id=C.courses_id
+		where C.courses_id=#{COURSES_ID}
+		and NOT EXISTS (
+		select student_id from school_leave
+		where lessons_id=#{lessons_id}
+		AND student_id=S.STUDENT_ID
+		)
+	</select>
+	
+	
+	
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		aa.ARRANGE_ID,	
+		aa.COURSE_ID,	
+		aa.STUDENT_ID,	
+		aa.ARRANGE_NAME,	
+		aa.CREATEBY,	
+		aa.CREATEDATE,	
+		aa.MODIFYBY,	
+		aa.MODIFYDATE,
+		sc.COURSES_NAME,
+		S.STUDENT_NAME
+		from
+		<include refid="tableName"></include> aa
+		inner join school_course sc
+		on aa.COURSE_ID = sc.COURSES_ID
+		LEFT JOIN web_student S
+		ON aa.student_id=S.student_id 
+		where 1=1
+		<if test=" COURSES_ID!= null and COURSES_ID!= ''"><!-- 关键词检索根据课程ID筛选 -->
+			and
+				(
+					aa.course_id=#{COURSES_ID}
+				)
+		</if>
+		<if test=" STUDENT_ID!= null and STUDENT_ID!= ''"><!-- 关键词检索根据学生ID筛选 -->
+			and
+				(
+					aa.STUDENT_ID=#{STUDENT_ID}
+				)
+		</if>
+	</select>
+	
+	<!-- 通过arrangeID查找StudentID -->
+	<select id="findStudentByArrangeId" parameterType="String" resultType="string">
+		select STUDENT_ID from school_arrange where arrange_id in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+	                 #{item}
+		</foreach>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ARRANGE_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+</mapper>

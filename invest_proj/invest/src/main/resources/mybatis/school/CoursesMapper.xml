@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CoursesMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SCHOOL_COURSE
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		COURSES_ID,
+		COURSES_NAME,	
+		SUBJECT_ID,	
+		ARRANGE_STARTTIME,	
+		ARRANGE_ENDTIME,	
+		COURSE_STATUS,
+		COURSES_REMARK,
+		CREATEBY,	
+		CREATEDATE,	
+		MODIFYBY,	
+		MODIFYDATE,
+		user_id
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{COURSES_ID},	
+		#{COURSES_NAME},
+		#{SUBJECT_ID},	
+		#{ARRANGE_STARTTIME},	
+		#{ARRANGE_ENDTIME},	
+		#{COURSE_STATUS},
+		#{COURSES_REMARK},	
+		#{CREATEBY},	
+		#{CREATEDATE},	
+		#{MODIFYBY},	
+		#{MODIFYDATE},
+		#{user_id}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			COURSES_ID = #{COURSES_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			SUBJECT_ID = #{SUBJECT_ID},
+			COURSES_NAME=#{COURSES_NAME},
+			ARRANGE_STARTTIME = #{ARRANGE_STARTTIME},
+			ARRANGE_ENDTIME = #{ARRANGE_ENDTIME},
+			COURSE_STATUS = #{COURSE_STATUS},
+			COURSES_REMARK=#{COURSES_REMARK},
+			CREATEBY = #{CREATEBY},
+			CREATEDATE = #{CREATEDATE},
+			MODIFYBY = #{MODIFYBY},
+			MODIFYDATE = #{MODIFYDATE},
+			user_id=#{user_id}
+		where 
+		COURSES_ID = #{COURSES_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select *,S.SUBJECT_NAME from SCHOOL_COURSE C
+		LEFT JOIN SCHOOL_SUBJECT S
+		ON C.subject_id=S.subject_id
+		where 
+			C.COURSES_ID = #{COURSES_ID}
+	</select>
+	<!--判断审核人是否为空  -->
+	<select id="findByName" parameterType="pd" resultType="pd">
+	SELECT
+		s.NAME
+				FROM `school_course` c LEFT JOIN `sys_user` s ON c.`user_id`=s.`USER_ID`
+				WHERE COURSES_ID=#{COURSES_ID}
+	</select>
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		COURSES_ID,
+		COURSES_NAME,	
+		SUBJECT_ID,	
+		ARRANGE_STARTTIME,	
+		ARRANGE_ENDTIME,	
+		COURSE_STATUS,
+		COURSES_REMARK,
+		s.user_id,
+		s.NAME
+				from 
+				<include refid="tableName"></include> c
+				LEFT JOIN `sys_user` s ON c.`user_id`=s.`USER_ID`
+		
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+					COURSES_NAME LIKE CONCAT('%', #{pd.keywords},'%')
+		</if>
+		<if test="pd.SUBJECT_ID!= null and pd.SUBJECT_ID != ''"><!-- 关键词检索  科目下的课程 -->
+			and
+					SUBJECT_ID=#{pd.SUBJECT_ID}
+		</if>
+		<if test="pd.STATUS_ID!= null and pd.STATUS_ID != ''"><!-- 关键词检索  状态条件的课程-->
+			and COURSE_STATUS=#{pd.STATUS_ID}
+		</if>
+		<if test="pd.STUDENT_ID!=null and pd.STUDENT_ID!=''"><!-- 查找学生未选择的课程 -->
+			and COURSES_ID not in(select COURSE_ID FROM school_arrange WHERE STUDENT_ID = #{pd.STUDENT_ID})
+		</if>
+		<if test="pd.USER_ID!=null and pd.USER_ID!=''"><!-- 查找老师未选择的课程 -->
+			and COURSES_ID not in(select COURSES_ID FROM school_courses_teacher where USER_ID = #{pd.USER_ID})
+		</if>
+		<if test="pd.USER_ID==null and pd.USER_ID==''"><!-- 查找老师未选择的课程 -->
+			and COURSES_ID not in(select COURSES_ID FROM school_courses_teacher
+		</if>
+		<if test="pd.lastStart != null and pd.lastStart != ''">
+			and arrange_starttime &gt;= DATE_FORMAT(#{pd.lastStart},'%y-%m-%d')
+		</if>
+		<if test="pd.lastEnd != null and pd.lastEnd != ''"><!-- 关键词检索 -->
+			and arrange_endtime &lt; date_add(#{pd.lastEnd}, interval 1 day)
+		</if>
+		order by ARRANGE_STARTTIME desc
+	</select>
+	 
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		 courses_name AS 'name',courses_id AS 'id' 
+		from 
+		<include refid="tableName"></include>
+		
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			COURSES_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+</mapper>

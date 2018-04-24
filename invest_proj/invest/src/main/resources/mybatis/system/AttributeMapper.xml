@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AttributeMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		PRODUCTS_ATTRIBUTE
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		ATTRIBUTE_ID,	
+		ATTR_NAME,	
+		ATTR_VALUE,	
+		ATTR_TYPEID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{ATTRIBUTE_ID},	
+		#{ATTR_NAME},	
+		#{ATTR_VALUE},	
+		#{ATTR_TYPEID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		INSERT INTO `products_attribute` 
+		VALUES(#{ATTRIBUTE_ID},#{ATTR_NAME},#{ATTR_VALUE},#{ATTR_TYPEID});
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ATTRIBUTE_ID = #{ATTRIBUTE_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		
+		set 
+			ATTR_NAME = #{ATTR_NAME},
+			ATTR_VALUE = #{ATTR_VALUE},
+			ATTR_TYPEID = #{ATTR_TYPEID}
+		where 
+		ATTRIBUTE_ID = #{ATTRIBUTE_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			ATTRIBUTE_ID = #{ATTRIBUTE_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		SELECT * FROM `products_attribute` a INNER JOIN `sys_dictionaries` d ON a.`ATTR_TYPEID`=d.`DICTIONARIES_ID`
+		where 
+		1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and a.`ATTR_NAME`  LIKE CONCAT('%', #{pd.keywords},'%')
+		</if>
+		<if test="pd.attrType!= null and pd.attrType != ''"><!-- 关键词检索 -->
+			and a.`ATTR_TYPEID` =#{pd.ATTR_TYPEID}
+		</if>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ATTRIBUTE_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 联查 -->
+	<select id="findMoreTable" parameterType="page" resultType="pd">
+		SELECT * FROM `products_attribute` a INNER JOIN `sys_dictionaries` d ON a.`ATTR_TYPEID`=d.`DICTIONARIES_ID`
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+				 (a.`ATTR_NAME`  LIKE CONCAT('%', #{pd.keywords},'%')
+				<!--	根据需求自己加检索条件
+					字段1 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+					 or 
+					字段2 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') 
+				-->
+				)
+		</if>
+	</select>
+	
+	<!-- 通过产品ID查询产品属性 -->
+	<select id="findAttrByProId" parameterType="pd" resultType="pd">
+		SELECT * FROM `products_attribute` pa INNER JOIN `products_productattr` pp ON pp.PRODUCTATTR_ATTR_TYPEID = pa.ATTRIBUTE_ID 
+					INNER JOIN `products_productsinfo` p ON p.PRODUCTSINFO_ID = pp.PRODUCTATTR_PRODUCT_ID 
+					WHERE 
+					1=1
+					<if test="PRODUCTSINFO_ID!= null and PRODUCTSINFO_ID != ''">
+						and p.PRODUCTSINFO_ID = #{PRODUCTSINFO_ID}
+					</if>
+					<if test="ATTR_TYPEID!= null and ATTR_TYPEID != ''">
+						and pa.ATTR_TYPEID =#{ATTR_TYPEID}
+					</if>
+					order by PRO_ATTR_ASC ASC
+	</select>
+	
+	<!-- 修改 -->
+	<update id="editVal" parameterType="pd">
+		update
+		products_productattr
+		
+		set 
+			PRO_ATTR_VAL = #{ATTRVALUE},
+			PRO_ATTR_ASC = #{ATTR_ASC}
+		where 
+		PRODUCTATTR_ATTR_TYPEID = #{PRODUCTATTR_ATTR_TYPEID}
+		and PRODUCTATTR_PRODUCT_ID = #{PRODUCTSINFO_ID}
+	</update>
+	
+	<!-- 修改 -->
+	<!-- <update id="ajaxEdit" parameterType="pd">
+		UPDATE `products_productattr` 
+		SET 
+		PRODUCTATTR_PRODUCT_ID = #{PRODUCTATTR_PRODUCT_ID} 
+			
+		WHERE 
+		PRODUCTATTR_ATTR_TYPEID = #{PRODUCTATTR_ATTR_TYPEID}
+	</update> -->
+	
+	<!-- 删除产品属性关系-->
+	<delete id="deleteGuanxi" parameterType="pd">
+		delete from
+		`products_productattr`
+		where 
+			 PRODUCTATTR_PRODUCT_ID = #{PRODUCTSINFO_ID}
+			and PRODUCTATTR_ATTR_TYPEID = #{PRODUCTATTR_ATTR_TYPEID}
+	</delete>
+	
+		
+	<!-- 新增产品属性关系-->
+	<insert id="saveGuanxi" parameterType="pd">
+		INSERT INTO `products_productattr` (
+			PRODUCTATTR_ID,
+			PRODUCTATTR_PRODUCT_ID,
+			PRODUCTATTR_ATTR_TYPEID,
+			PRO_ATTR_VAL,
+			PRO_ATTR_ASC
+		)
+		VALUES(
+		#{PRODUCTATTR_ID},
+		#{PRODUCTSINFO_ID},
+		#{PRODUCTATTR_ATTR_TYPEID},
+		#{ATTRSS},
+		0
+		);
+	</insert>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findAttrValue" parameterType="pd" resultType="pd">
+		SELECT ATTR_VALUE FROM `products_attribute` WHERE ATTRIBUTE_ID  = #{PRODUCTATTR_ATTR_TYPEID}
+	</select>
+</mapper>

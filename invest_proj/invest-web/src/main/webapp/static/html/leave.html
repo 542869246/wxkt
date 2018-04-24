@@ -1,0 +1,285 @@
+<style>
+.details_partake {
+	margin-left: 10% !important;
+	width: 35% !important;
+	margin-top: 10px;
+}
+
+.mui-card label {
+	width: 100%;
+}
+
+.mui-card .mui-input-row:after {
+	heighst: 0px;
+}
+
+.mui-input-group .mui-input-row {
+	height: 50px;
+}
+
+.hidden {
+	display: none;
+}
+
+
+</style>
+<form class="mui-input-group" style="background-color: #FFF3DD;">
+	<input type="hidden" value="f0115a0b74b44d2ca81c7332d7802e39"
+		id="teaid">
+
+	<div class="details_comment "
+		style="margin-top: 20px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn">学生姓名</div>
+			<select id="student"
+				style="font-size: 10px; text-indent: 8px; height: 100%; margin-top: 0px; width: 80%;">
+			</select>
+
+		</div>
+	</div>
+
+	<div class="details_comment mui-input-row"
+		style="margin-top: 15px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn">请假时间</div>
+			<input id="leave_time" type="text" class="search_input1"
+				placeholder="点击选择日期" style="border: none;" required="required">
+		</div>
+	</div>
+
+
+
+	<div class="mui-scroll-wrapper  hidden"
+		style="position: relative; margin-top: 10px;" id="subject_list">
+		<div class="mui-scroll">
+
+			<div class="mui-card"></div>
+
+		</div>
+	</div>
+
+
+	<div class="details_comment mui-input-row"
+		style="margin-top: 15px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn" id="">请假原因</div>
+			<input type="text" class="mui-input-clear" placeholder="请输入请假原因"
+				maxlength="25" id="leave_cause" required="required"
+				data-input-clear="2"><span
+				class="mui-icon mui-icon-clear mui-hidden"></span>
+		</div>
+	</div>
+	<div>
+		<div class="details_partake">
+			<div class="details_partake_button" id="reg">确认</div>
+		</div>
+		<div class="details_partake">
+			<div class="details_partake_button" id="back_list">返回</div>
+		</div>
+	</div>
+
+</form>
+<script type="text/javascript">
+
+mui.init();
+mui('.mui-scroll-wrapper').scroll({
+	deceleration: 0.0005, //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+	indicators: true, //是否显示滚动条
+	scrollY:true
+});
+
+var mask = mui.createMask(function () {
+	var flushStr=`<div class="mui-pull-top-pocket mui-block">
+	<div class="mui-pull">
+	<div class="mui-pull-loading mui-icon mui-spinner"></div>
+	<div class="mui-pull-caption"><p>懂得静观大地开花结果的人</p></div>
+	<div class="mui-pull-caption"><p>决不会为失去的一切而痛心</p></div>
+	</div></div>`
+	$(".mui-backdrop").html(flushStr);
+    return mask.clickClose;;
+})
+mask.show()
+mask.clickClose = false;
+mask.clickClose=true;
+mask.close();
+
+mui('#subject_list').scroll().scrollTo(0,0);
+
+
+$(function() {
+	//获取选中的值
+	function getCheckBoxRes(item){
+	    var checkVal = '';
+	    for(i = 0; i < item.length; i++){
+	        if(item[i].checked){
+	        	if(checkVal != ''){
+	        		checkVal += ","+item[i].value;
+	        	}else{
+	        		checkVal += item[i].value;
+	        	}
+	        }
+	    }
+	    return checkVal;
+	}
+	
+
+	var location = (window.location+'').split('/');
+	var basePath = location[0]+"//"+location[2]+"/"+location[3];
+	var url = basePath+"/";
+	
+	var btns = mui('.search_input1');
+	btns.each(function(i, btn) {
+		btn.addEventListener('tap', function() {　
+			var dtPicker = new mui.DtPicker({　　　　
+				"type": "date",
+				beginDate: new Date(1996, 12, 20),//设置开始日期 
+			    endDate: new Date(2100, 12, 20)//设置结束日期 　　　　
+			});　　
+			dtPicker.show(function(rs) {
+				$('.search_input1').val(rs.text)
+				
+				//时间选择框改变时获取科目信息
+				if($("#student").val() != ""){
+					subjectAjax()
+				}
+
+				dtPicker.dispose();
+			});　
+		}, false);
+		
+	})
+		
+	//进入添加页面时加载学生信息
+		insave()
+		
+		
+		//改变学生时根据时间的值获取科目信息
+		$("#student").change(function(){
+			if($("#leave_time").val() != ""){
+				subjectAjax()
+			}
+		})
+		
+		//点击确认时执行提交操作
+		mui(".mui-input-group").on("tap","#reg",function(){
+			$("#leave_cause").blur()
+			var STUDENT_ID = $("#student").val();
+			var LEAVEDATE = $("#leave_time").val();
+			var res = $("input[name='lesson']");
+			var LEAVECAUSE = $("#leave_cause").val();
+			var LESSONS = getCheckBoxRes(res);
+			if(LEAVEDATE == '' || STUDENT_ID == '' ||LESSONS.length < 1 || LEAVECAUSE == ''){
+				mui.toast('请填写完整信息！','提示','确定')
+				return false; 
+			}  
+			$.ajax({
+				type:"post",
+				url:url+"leave/save",
+				data:{STUDENT_ID:STUDENT_ID,LEAVEDATE:LEAVEDATE,LESSONS:LESSONS,LEAVECAUSE:LEAVECAUSE},
+				dataType:"JSON",
+				success:function(data){
+					mui.alert('信息添加成功！',function(){
+						insave()
+					})
+					
+				},
+				error:function(){
+					mui.alert('信息添加失败！','提示','确定')
+				},
+				beforeSend:function(){
+					mask.show();
+					mask.clickClose = false;
+				},
+				complete:function(){
+					mask.clickClose = true;
+					mask.close();
+				}
+			})
+		})
+		
+		mui(".mui-input-group").on("tap","#back_list",function(){
+
+			//回到请假首页页面
+			$.ajax({
+				type:"get",
+				url:url+'static/html/leavelist.html',
+				dataType: 'html',
+				success:function(res){
+					$('#item2mobile').find('.mui-scroll').html(res)
+					$('#leavetouch').show()
+					
+					$.zyf.loadAJAX({
+						data:res
+					})
+				}
+			})
+					
+		})
+		
+	function subjectAjax(){
+		var STUDENT_ID = $("#student").val();
+		var LEAVEDATE = $("#leave_time").val()
+		$.ajax({
+			type:"post",
+			url:url+"leave/getSubject",
+			data:{STUDENT_ID:STUDENT_ID,LEAVEDATE:LEAVEDATE},
+			dataType:"JSON",
+			success:function(data){
+				if(data == ""){
+					$("#subject_list").addClass("hidden")
+				}else{
+					$("#subject_list").find(".mui-card").html("")
+					$.each(data,function(index,item){
+						if(index >= 2){
+							$("#subject_list").css("min-height","150px");
+						}else{
+							$("#subject_list").css("min-height",60*(index+1)+"px");
+						}
+						$("#subject_list").removeClass("hidden").find(".mui-card").append(`<div class="mui-input-row mui-checkbox mui-left">
+								<label>[${item.lesson_starttime}-${item.lesson_endtime}] ${item.subject_name}</label> <input name="lesson" value="${item.lessons_id}"
+									type="checkbox" >
+							</div>`)
+					})
+				}
+			},
+			beforeSend:function(){
+				mask.show();
+				mask.clickClose = false;
+			},
+			complete:function(){
+				mask.clickClose = true;
+				mask.close();
+			}
+		})	
+	}
+	
+
+	function insave(){
+			$.ajax({
+				type:"get",
+				url:url+"leave/goAdd",
+				dataType:"JSON",
+				success:function(data){
+					$("#student").html("")
+					$("#subject_list").addClass("hidden")
+					$("#leave_time").val("")
+					$("#leave_cause").val("")
+					$("#student").append(`<option value="">点击选择学生</option>`)
+					$.each(data.stus,function(index,item){
+						$("#student").append(`<option value="${item.student_id}">${item.student_name}</option>`)
+					})
+				},
+				beforeSend:function(){
+					mask.show();
+					mask.clickClose = false;
+				},
+				complete:function(){
+					mask.clickClose = true;
+					mask.close();
+				}
+			})
+		}
+})
+
+		
+</script>

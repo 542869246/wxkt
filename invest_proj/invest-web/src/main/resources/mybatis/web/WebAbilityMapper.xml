@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="WebAbilityMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		WEB_ABILITY
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		ABILITY_ID,	
+		ABILITY_TYPE_ID,	
+		STUDENT_ID,	
+		SUBJECT_ID,	
+		COURSE_TIME,	
+		COURSE_CONTENT,	
+		SCORE_VALUE,	
+		ABILITY_VALUE,	
+		CREATEBY,	
+		CREATEDATE
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{ABILITY_ID},	
+		#{ABILITY_TYPE_ID},	
+		#{STUDENT_ID},	
+		#{SUBJECT_ID},	
+		#{COURSE_TIME},	
+		#{COURSE_CONTENT},	
+		#{SCORE_VALUE},	
+		#{ABILITY_VALUE},	
+		#{CREATEBY},	
+		#{CREATEDATE}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ABILITY_ID = #{ABILITY_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			ABILITY_ID = #{ABILITY_ID},
+			ABILITY_TYPE_ID = #{ABILITY_TYPE_ID},
+			STUDENT_ID = #{STUDENT_ID},
+			SUBJECT_ID = #{SUBJECT_ID},
+			COURSE_TIME = #{COURSE_TIME},
+			COURSE_CONTENT = #{COURSE_CONTENT},
+			SCORE_VALUE = #{SCORE_VALUE},
+			ABILITY_VALUE = #{ABILITY_VALUE},
+			CREATEBY = #{CREATEBY},
+			CREATEDATE = #{CREATEDATE},
+			MODIFYBY = #{MODIFYBY},
+			MODIFYDATE = #{MODIFYDATE},
+		ABILITY_ID = ABILITY_ID
+		where 
+		ABILITY_ID = #{ABILITY_ID}
+	</update>
+	
+	<!-- 能力值部分修改 -->
+	<update id="editvalue" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			COURSE_CONTENT = #{COURSE_CONTENT},
+			SCORE_VALUE = #{SCORE_VALUE},
+			ABILITY_VALUE = #{ABILITY_VALUE},
+			MODIFYBY = #{MODIFYBY},
+			MODIFYDATE = #{MODIFYDATE}
+		where 
+		ABILITY_ID = #{ABILITY_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			ABILITY_ID = #{ABILITY_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+				(
+				<!--	根据需求自己加检索条件
+					字段1 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+					 or 
+					字段2 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') 
+				-->
+				)
+		</if>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	<!-- 获得一个学生的一批次的数据 -->
+	<select id="findByStu" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where
+		STUDENT_ID = #{STUDENT_ID}
+	</select>
+	
+	<!-- 根据学生的ID查询一个批次各个能力值的总分值 -->
+	<select id="findTotaAbilityValueByStu" parameterType="pd" resultType="pd">
+		select sum(ability_value) as AbilityTotal, ability_type_id,student_id,course_content
+		from 
+		<include refid="tableName"></include>
+		where
+		STUDENT_ID = #{STUDENT_ID}
+		GROUP BY ability_type_id
+	</select>
+	
+	<!-- 根据学生id查询积分 -->
+	<select id="findStudentById" parameterType="pd" resultType="pd">
+	   select
+		   sum(SCORE_VALUE) VALUE
+		from 
+		<include refid="tableName"></include>
+	    where STUDENT_ID=#{STUDENT_ID}
+	</select>
+	
+	
+	 <!-- 通过学生id查询能力集合 -->
+	 <select id="findList" parameterType="pd" resultType="pd">
+	   select
+		    a.*,s.SUBJECT_NAME NAME 
+	   from
+		    web_ability a       
+		    left  join SCHOOL_SUBJECT s ON a.SUBJECT_ID=s.SUBJECT_ID
+	    where STUDENT_ID=#{STUDENT_ID} 
+	       ORDER BY COURSE_TIME DESC
+	       limit #{start},6
+	</select>
+	
+	<!-- 根据学生的id查询能力和能力类型 -->
+	 <select id="findAndAbilityTypeList" parameterType="pd" resultType="pd">
+	    select
+		    a.*,s.SUBJECT_NAME NAME,d.`NAME` abilityTypeNAME 
+	   from
+		    web_ability a       
+		    left  join SCHOOL_SUBJECT s ON a.SUBJECT_ID=s.SUBJECT_ID
+				inner join sys_dictionaries d on a.ability_type_id=d.DICTIONARIES_ID
+	    where STUDENT_ID=#{STUDENT_ID}
+	       ORDER BY COURSE_TIME DESC
+	       limit #{start},6
+	</select>
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			ABILITY_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 根据学生id，课程id和时间段查询能力值列表 -->
+	<select id="findByIdAndTime" parameterType="pd" resultType="pd">
+		select
+		wa.*,ws.student_name,ss.subject_name,sd.name
+		from 
+		<include refid="tableName"></include> wa
+		INNER JOIN web_student ws ON wa.student_id=ws.student_id
+		INNER JOIN school_subject ss ON wa.subject_id=ss.subject_id
+		INNER JOIN sys_dictionaries sd ON wa.ability_type_id=sd.dictionaries_id
+		WHERE wa.student_id=#{STUDENT_ID}
+		AND wa.subject_id=#{SUBJECT_ID}
+		AND TO_DAYS(course_time)=TO_DAYS(#{COURSE_TIME})
+	</select>
+	
+</mapper>

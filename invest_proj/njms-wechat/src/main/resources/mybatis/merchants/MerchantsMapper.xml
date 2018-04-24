@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MerchantsMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		MERCHANTS
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		MERCHANTS_ID,
+		IMAGE_IDS,
+		LONGITUDE,
+		LATITUDE,
+		ADDRESS,
+		TEL_FIRST,
+		TEL_SECOND,
+		BUSINESS_HOURS,
+		DELIVERY_TIME,
+		DELIVERY_RANGE,
+		REGION_ID,
+		REGION_NAME,
+		MERCHANTS_NAME
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{MERCHANTS_ID},
+		#{IMAGE_IDS},
+		#{LONGITUDE},
+		#{LATITUDE},
+		#{ADDRESS},
+		#{TEL_FIRST},
+		#{TEL_SECOND},
+		#{BUSINESS_HOURS},
+		#{DELIVERY_TIME},
+		#{DELIVERY_RANGE},
+		#{REGION_ID},
+		#{REGION_NAME},
+		#{MERCHANTS_NAME}
+	</sql>
+
+	<!-- 列表 -->
+	<select id="merchantsAll" parameterType="pd" resultType="com.flc.entity.merchants.Merchants">
+		SELECT
+			<include refid="Field"></include>
+		FROM 
+			<include refid="tableName"></include>
+		WHERE REGION_ID = #{REGION_ID}
+	</select>
+</mapper>

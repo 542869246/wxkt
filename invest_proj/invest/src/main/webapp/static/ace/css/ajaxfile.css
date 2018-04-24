@@ -1,0 +1,12 @@
+#_showImg{
+	margin-left:-28px;max-height:30px;border: 1px solid #EFEFEF;border-radius: 5px;
+}
+#upload_time_line{
+	border-radius: 15px;background-color: #e7e7e7;
+}
+#_the_line_text{
+	float: left;line-height: 20px;padding-left:5px;color:#858585
+}
+#_the_line{
+	border-radius: 15px;width:0px;background-color: #DCD6D6;height:21px;text-align: center;line-height:21px;
+}

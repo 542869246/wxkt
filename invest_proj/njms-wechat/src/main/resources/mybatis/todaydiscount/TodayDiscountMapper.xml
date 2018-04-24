@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TodayDiscountMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		TODAY_DISCOUNT
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		MERCHANTS_ID,
+		NAME,
+		PREFERENTIAL_CONTENT,
+		LOGO,
+		REGION_ID,
+		REGION_NAME,
+		PREFERENTIAL_END_TIME
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{MERCHANTS_ID},
+		#{NAME},
+		#{PREFERENTIAL_CONTENT},
+		#{LOGO},
+		#{REGION_ID},
+		#{REGION_NAME},
+		#{PREFERENTIAL_END_TIME}
+	</sql>
+
+	<!-- 今日特惠列表 -->
+	<select id="todaydiscountAll" parameterType="page" resultType="com.flc.entity.todaydiscount.TodayDiscount">
+		SELECT
+			<include refid="Field"></include>
+		FROM 
+			<include refid="tableName"></include>
+		WHERE REGION_ID = #{REGION_ID}
+	</select>
+</mapper>

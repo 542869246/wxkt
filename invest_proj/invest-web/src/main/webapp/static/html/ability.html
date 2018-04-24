@@ -1,0 +1,208 @@
+<style>
+.mui-scroll {
+	padding: 10px;
+}
+
+.mui-table-view {
+	background-color: #FFF3DD;
+}
+
+#OA_task_3>.mui-table-view-cell {
+	background-color: #fff;
+	margin-top: 10px;
+	border-radius: 10px;
+}
+
+#OA_task_3>.mui-table-view-cell:after {
+	height: 0px;
+}
+
+/*  #OA_task_3 .mui-slider-handle {  */
+/*  	height: 113px; */
+/*  }  */
+
+.mui-slider-handle>.mui-badge {
+	font-size: 15px;
+	padding: 0px 10px 0px 15px;
+}
+
+h4 {
+	font-size: 14px;
+}
+</style>
+
+
+		<ul id="OA_task_3" class="mui-table-view">
+
+		</ul>
+
+<!-- <script type="text/javascript" src="../static/wx/js/jquery-1.11.3.min.js"></script> -->
+<script>
+	mui.init();
+	
+	var mask = mui.createMask(function () {
+		var flushStr=`<div class="mui-pull-top-pocket mui-block">
+		<div class="mui-pull">
+		<div class="mui-pull-loading mui-icon mui-spinner"></div>
+		<div class="mui-pull-caption"><p>懂得静观大地开花结果的人</p></div>
+		<div class="mui-pull-caption"><p>决不会为失去的一切而痛心</p></div>
+		</div></div>`
+		$(".mui-backdrop").html(flushStr);
+	    return mask.clickClose;;
+	})
+	mask.show()
+	mask.clickClose = false;
+	mask.clickClose=true;
+	mask.close();
+
+// 	mui('.mui-scroll-wrapper').scroll({
+// 		deceleration: 0.0005, //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+// 		indicators: true, //是否显示滚动条
+// 		scrollY:true
+// 	});
+	mui('#scroll3').scroll().scrollTo(0,0);
+
+// 	var btns = mui('.search_input3');
+// 	btns.each(function(i, btn) {
+// 		btn.addEventListener('tap', function() {　
+// 			var dtPicker = new mui.DtPicker({　　　　
+// 				"type": "date"　　　
+// 			});　　
+// 			dtPicker.show(function(rs) {
+// 				$(".search_input3").attr("placeholder", rs.text);
+// 				/*loaddata(rs.text);*/
+// 			});　
+// 		}, false);
+// 	});
+	
+	//补零
+	function p(num){
+	        return num < 10 ? '0' + num: num;
+	    
+	}
+	
+	$(function(){
+		
+		var location = (window.location+'').split('/');
+		var basePath = location[0]+'//'+location[2]+'/'+location[3];
+		var url = basePath+'/';
+
+// 		显示日程信息列表
+		function showSchedule(){
+			$.ajax({
+				url:url+'ability/listSchedule',
+				type: "get",
+				dataType: 'json',
+				async: false,
+				success:function(res){
+					$('#OA_task_3').html("")
+					var str=``
+					$.each(res,function(index,item){
+						str+=`<li class="mui-table-view-cell mui-media student_list" >
+						<div class="mui-slider-right mui-disabled">
+							<input type="hidden" value="${item.subject_id}" class="subject_id"/>
+							<input type="hidden" value="${item.lesson_starttime}" class="start_time"/>
+							<a class="mui-btn mui-btn-warning sel_student">查看任务</a>
+						</div>
+						<div class="mui-slider-handle">
+						<div class="mui-table">
+					<div class="mui-table-cell mui-col-xs-10">
+						<h4 class="mui-ellipsis">科目名称：${item.subject_name }</h4>
+					</div>
+				</div>
+				<div class="mui-table">
+					<div class="mui-table-cell mui-col-xs-10">
+						<p class="mui-h6 mui-ellipsis">所属课程：${item.courses_name}</p>
+						<h6>上课时间：${item.lesson_starttime}-${item.lesson_endtime}</h6>
+					</div>
+				</div>
+						</div>
+					</li>`
+					})
+					if(res.length==0){
+						str=`<br/><center><p>无数据</p></center>`
+					}
+					
+					$('#OA_task_3').html(str)
+					$('#scheduletouch').show()
+					mui('#scroll3').scroll().scrollTo(0,0);
+					
+					$("#return_back").off("click").on("click",function(){
+						mui('.mui-popover').popover('hide',document.getElementById("scheduletouch"));
+						showSchedule();
+					})
+					
+					//点击查看任务查询未完成任务的学学生信息
+					mui("#OA_task_3").on("tap",".sel_student",function(){
+						var SUBJECT_ID = $(this).parent().find(".subject_id").val();
+						var START_TIME = $(this).parent().find(".start_time").val();
+						
+						$.ajax({
+							type:"get",
+							url:url+'static/html/noabilityvaluestudent.html',
+							dataType: 'html',
+							success:function(item){
+								$('#item3mobile').find('.mui-scroll3').html(item)
+								$('#scheduletouch').show()
+								$('#subject_id').val(SUBJECT_ID)
+								$('#start_time').val(START_TIME)
+							},
+							beforeSend:function(){
+								mask.show();
+								mask.clickClose = false;
+							},
+							complete:function(){
+								mask.clickClose = true;
+								mask.close();
+							}
+						})
+						event.stopPropagation();  
+					})
+					
+					// 		根据点击的科目获取此课程学生信息
+					mui("#OA_task_3").on("tap",".student_list",function(){
+						var SUBJECT_ID = $(this).find(".subject_id").val();
+						var START_TIME = $(this).find(".start_time").val();
+						
+						$.ajax({
+							type:"get",
+							url:url+'static/html/abilitystudent.html',
+							dataType: 'html',
+							success:function(item){
+								$('#item3mobile').find('.mui-scroll3').html(item)
+								$('#scheduletouch').show()
+								$('#subject_id').val(SUBJECT_ID)
+								$('#start_time').val(START_TIME)
+							}
+						})
+					})
+					
+				},
+				beforeSend:function(){
+					mask.show();
+					mask.clickClose = false;
+				},
+				complete:function(){
+					mask.clickClose = true;
+					mask.close();
+				}
+			})
+		}
+		
+		showSchedule()
+		
+		
+// 		点击刷新列表
+		$('#flushscheduleList').off("click").on("click",function(){
+			mui('.mui-popover').popover('hide',document.getElementById("scheduletouch"));
+			showSchedule()
+		})
+		
+	})
+	
+	
+	function backPrevPage(){
+		window.distory.back();
+	}
+
+</script>

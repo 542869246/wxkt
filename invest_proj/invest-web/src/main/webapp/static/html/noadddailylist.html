@@ -1,0 +1,224 @@
+<style>
+.mui-scroll {
+	padding: 10px;
+}
+
+.mui-table-view {
+	background-color: #FFF3DD;
+}
+
+#OA_task_2>.mui-table-view-cell {
+	background-color: #fff;
+	margin-top: 10px;
+	border-radius: 10px;
+}
+
+#OA_task_2>.mui-table-view-cell:after {
+	height: 0px;
+}
+
+</style>
+	<div style="display: none;">
+	<input type="text"  id="course_id"/>
+	<input type="text"  id="schedule_tasktype"/>
+	<input type="text"  id="lesson_starttime"/>
+	<input type="text"  id="subject_id"/>
+
+</div>
+
+	<ul id="OA_task_2" class="mui-table-view">
+
+	</ul>
+
+<!-- <script type="text/javascript" src="static/wx/js/jquery-1.11.3.min.js"></script> -->
+<script>
+	mui.init();
+		
+	mui('.mui-scroll-wrapper').scroll({
+		deceleration: 0.0005, //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+		indicators: true //是否显示滚动条
+	});
+	function dailyList(neng){
+		$.ajax({
+			type: "get",
+			url: url+"static/html/editdaily.html",
+			dataType: 'html',
+			async: true,
+			success: function(res) {
+				console.log(item3)
+				/* $(item3.querySelector('.mui-scroll')).html(res) */
+				$("#item1mobile").find('.mui-scroll').html(res)
+
+			}
+		});
+	}
+	$(function(){
+		var location = (window.location+'').split('/');
+		var basePath = location[0]+'//'+location[2]+'/'+location[3];
+		var url = basePath+'/';
+		var COURSE_ID=$("#course_id").html();
+		
+		function showAll(){
+			setTimeout(function(){
+				var SCHEDULE_TASKTYPE=$('#schedule_tasktype').val();
+				console.log(SCHEDULE_TASKTYPE);
+			var str=``;
+				$.ajax({
+					
+					url:url+'teacherin/getStudents.do',
+					data:{USER_ID:$('#user_id').text(),
+						SCHEDULE_TASKTYPE:$('#schedule_tasktype').val(),
+						LESSON_STARTTIME:'2018-04-23 15:00:00.0',
+						SUBJECT_ID:$('#subject_id').val(),
+						COURSE_ID:$('#course_id').val()},
+					type: "post",
+					dataType: 'json',
+					async: true,
+					success:function(res){
+						console.log(res)
+						
+						var str=``
+							$(res).each(function(index,item){
+								str+=`
+									<li class="mui-table-view-cell mui-transitioning">
+									<div class="mui-slider-right mui-disabled">
+										<a class="mui-btn mui-btn-warning" style="transform: translate(0px, 0px);">增加</a>
+									</div>
+									<div class="mui-slider-handle" style="transform: translate(0px, 0px);">
+									${item.student_name}
+									</div>
+								</li>
+								`
+								
+							})
+							console.log(str)
+							if(res.length==0){
+								str=`<br/><center><p>无数据</p></center>`
+							}
+							$('#OA_task_2').html(str)
+							$('#dailytouch').show()
+					}
+				})  
+			})
+		}
+		
+		showAll()
+		var elem;
+		var li;
+		 //第一个demo，拖拽后显示操作图标，点击操作图标删除元素；
+		$('#OA_task_2').on('tap', '.mui-btn', function(event) {
+			elem = this;
+			li = elem.parentNode.parentNode;		
+			console.log($(elem).attr('lid'));
+			console.log(user_id);
+			mui('.mui-popover').popover('hide',document.getElementById("dailytouch"));
+			var $adddailyHtml = $.ajax({
+				url:url+'static/html/adddaily.html',
+				dataType: 'html'
+			});
+			
+			var $adddailyInfo= $.ajax({
+				url:url+'teacherin/addsatas.do',
+				data:{"USER_ID":user_id},
+				type:'post',
+				dataType: 'json'
+			});
+			$.when($adddailyHtml,$adddailyInfo)
+			.done(function(item1,item2){
+				//吧页面加载到主页面 赋值
+				$('#dailytouch').hide()
+				$('#item1mobile').find('.mui-scroll').html(item1[0])
+				
+				
+				var opt="<option value='0'>请选择课程</option>"
+				$(item2[0].courses).each(function(item){
+					var sch=item2[0].courses[item]
+					opt+="<option value="+sch.COURSES_ID+">"+sch.COURSES_NAME+"</option>"
+				})
+				
+				$('#coursesel').html(opt)
+				
+				var opt1="<option value='0'>请选择作业类型</option>"
+				$(item2[0].schList).each(function(item){
+					var sch=item2[0].schList[item]
+					console.log(sch);
+					opt1+="<option value="+sch.bianma+">"+sch.name+"</option>"
+				})
+				
+				$('#SCHEDULE_TASKTYPE').html(opt1)
+				
+				
+				
+			}).fail(function(){
+				
+				alert("出错啦！");
+			})
+		});
+		
+		var user_id=$('#user_id').text();
+		
+		$('#addDaily').click(function(){
+			console.log(user_id);
+			mui('.mui-popover').popover('hide',document.getElementById("dailytouch"));
+			var $adddailyHtml = $.ajax({
+				url:url+'static/html/adddaily.html',
+				dataType: 'html'
+			});
+			
+			var $adddailyInfo= $.ajax({
+				url:url+'teacherin/addsatas.do',
+				data:{"USER_ID":user_id},
+				type:'post',
+				dataType: 'json'
+			});
+			$.when($adddailyHtml,$adddailyInfo)
+			.done(function(item1,item2){
+				//吧页面加载到主页面 赋值
+				$('#dailytouch').hide()
+				$('#item1mobile').find('.mui-scroll').html(item1[0])
+				
+				
+				var opt="<option value='0'>请选择课程</option>"
+				$(item2[0].courses).each(function(item){
+					var sch=item2[0].courses[item]
+					opt+="<option value="+sch.COURSES_ID+">"+sch.COURSES_NAME+"</option>"
+				})
+				
+				$('#coursesel').html(opt)
+				
+				var opt1="<option value='0'>请选择作业类型</option>"
+				$(item2[0].schList).each(function(item){
+					var sch=item2[0].schList[item]
+					console.log(sch);
+					opt1+="<option value="+sch.bianma+">"+sch.name+"</option>"
+				})
+				
+				$('#SCHEDULE_TASKTYPE').html(opt1)
+				
+				
+				
+			}).fail(function(){
+				
+				alert("出错啦！");
+			})
+			
+			/* $.ajax({
+				url:url+'static/html/adddaily.html',
+				dataType: 'html'
+			}).done(function(res){
+				$('#item1mobile').find('.mui-scroll').html(res)
+				$('#dailytouch').hide()
+			}).fail(function(){
+				alert("出错啦！")
+			}) */
+		})
+		
+		
+		$('#flushDailyList').click(function(){
+			mui('.mui-popover').popover('hide',document.getElementById("dailytouch"));
+			showAll()
+		})
+		
+		
+	})
+</script>

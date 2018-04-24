@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="RestaurantMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		RESTAURANT
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		RESTAURANT_ID,
+		RESTAURANT_NAME,
+		DESCRIPTION,
+		PHONE,
+		STANDBY_TEL,
+		IS_PREMIUM,
+		AVG_PRICE,
+		SERVING_TIME,
+		NUM_RATINGS,
+		IMAGE_URL,
+		CATEGORIES,
+		LATITUDE,
+		LONGITUDE,
+		PROMOTION_INFO,
+		REGION
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{RESTAURANT_ID},
+		#{RESTAURANT_NAME},
+		#{DESCRIPTION},
+		#{PHONE},
+		#{STANDBY_TEL},
+		#{IS_PREMIUM},
+		#{AVG_PRICE},
+		#{SERVING_TIME},
+		#{NUM_RATINGS},
+		#{IMAGE_URL},
+		#{CATEGORIES},
+		#{LATITUDE},
+		#{LONGITUDE},
+		#{PROMOTION_INFO},
+		#{REGION}
+	</sql>
+
+	<!-- 全部商家列表 -->
+	<select id="restaurantListAll" parameterType="page" resultType="com.flc.entity.restaurant.Restaurant">
+		select  
+			<!-- logo图 -->
+			IMAGE_URL,
+			<!-- 餐厅名称 -->
+			RESTAURANT_NAME,
+			<!-- 是否品牌餐厅（老字号）（0，否；1，是） -->
+			IS_PREMIUM,
+			<!-- 	星级评分 -->
+			NUM_RATINGS,
+			<!-- 	人均消费(元）-->
+			AVG_PRICE,
+			<!-- 	品牌菜名称 -->
+			FOOD_PREMIUM_NAME,
+			<!-- 	纬度坐标 -->
+			LATITUDE,
+			<!-- 	经度坐标 -->
+			LONGITUDE
+		from 
+			<include refid="tableName"></include>
+			where region = #{region}
+	</select>
+</mapper>

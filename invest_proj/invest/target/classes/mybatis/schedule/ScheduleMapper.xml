@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ScheduleMapper">
+
+	<!--表名 -->
+	<sql id="tableName">
+		SCHOOL_SCHEDULE
+	</sql>
+
+	<!-- 字段 -->
+	<sql id="Field">
+		LESSON_NAME,
+		TEACHERS_ID,
+		COURSE_ID,
+		SUBJECT_ID,
+		CLASSROOM_ID,
+		LESSON_STARTTIME,
+		LESSON_ENDTIME,
+		LESSON_TIME_TYPE,
+		MODIFYBY,
+		MODIFYDATE,
+		CREATEBY,
+		CREATEDATE,
+		LESSONS_ID
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{LESSON_NAME},
+		#{TEACHERS_ID},
+		#{COURSE_ID},
+		#{SUBJECT_ID},
+		#{CLASSROOM_ID},
+		#{LESSON_STARTTIME},
+		#{LESSON_ENDTIME},
+		#{LESSON_TIME_TYPE},
+		#{MODIFYBY},
+		#{MODIFYDATE},
+		#{CREATEBY},
+		#{CREATEDATE},
+		#{LESSONS_ID}
+	</sql>
+
+	<!-- 新增 -->
+	<insert id="save" parameterType="pd">
+		insert into
+		<include refid="tableName"></include>
+		(
+		<include refid="Field"></include>
+		) values (
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where
+		LESSONS_ID = #{LESSONS_ID}
+	</delete>
+
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		LESSON_NAME = #{LESSON_NAME},
+		TEACHERS_ID = #{TEACHERS_ID},
+		COURSE_ID = #{COURSE_ID},
+		SUBJECT_ID=#{SUBJECT_ID},
+		CLASSROOM_ID = #{CLASSROOM_ID},
+		LESSON_STARTTIME = #{LESSON_STARTTIME},
+		LESSON_ENDTIME = #{LESSON_ENDTIME},
+		LESSON_TIME_TYPE=#{LESSON_TIME_TYPE},
+		LESSONS_ID = LESSONS_ID
+		where
+		LESSONS_ID = #{LESSONS_ID}
+	</update>
+
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where
+		LESSONS_ID = #{LESSONS_ID}
+	</select>
+
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+
+		SELECT 
+		sche.LESSON_NAME,
+		sche.TEACHERS_ID,
+		sche.COURSE_ID,
+		sche.CLASSROOM_ID,
+		sche.LESSON_STARTTIME,
+		sche.LESSON_ENDTIME,
+		sche.MODIFYBY,
+		sche.MODIFYDATE,
+		sche.LESSON_TIME_TYPE,
+		sche.CREATEBY,
+		sche.CREATEDATE,
+		sche.LESSONS_ID,
+		u.NAME AS teachername,classroom.classroom_name AS classname,subject.SUBJECT_NAME,subject.SUBJECT_ID,course.courses_name AS coursesname,DATE_FORMAT(sche.LESSON_STARTTIME,'%Y-%m-%d') as lesson_time,DATE_FORMAT(sche.LESSON_STARTTIME,'%H:%i:%s') as starttime
+		FROM school_schedule sche
+		LEFT JOIN sys_user u ON(u.USER_ID=sche.teachers_id )
+		LEFT JOIN school_classroom classroom
+		on(classroom.classroom_id=sche.classroom_id)
+		LEFT JOIN school_course course ON(course.courses_id=sche.course_id)
+		LEFT JOIN school_subject subject ON(subject.subject_id=sche.subject_id)
+
+		<!-- select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include> -->
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+			(
+				u.NAME like CONCAT('%',#{pd.keywords},'%')
+			)
+		</if>
+		<if test="pd.COURSES_ID!=null and pd.COURSES_ID!=''">
+			and sche.course_id =#{pd.COURSES_ID}
+		</if>
+		<if test="pd.CLASSROOM_ID!=null and pd.CLASSROOM_ID!=''">
+			and sche.CLASSROOM_ID =#{pd.CLASSROOM_ID}
+		</if>
+		<if test="pd.lastStart!= null and pd.lastStart != ''"><!-- 关键词检索 -->
+			and
+			(
+					sche.lesson_starttime &gt;= DATE_FORMAT(#{pd.lastStart},'%y-%m-%d')
+			)
+		</if>
+		<if test="pd.lastEnd!= null and pd.lastEnd != ''"><!-- 关键词检索 -->
+			and
+			(
+					sche.lesson_endtime &lt;= DATE_FORMAT(DATE_ADD(#{pd.lastEnd},INTERVAL 1 DAY),'%y-%m-%d')
+			)
+		</if>
+		<if test="pd.lastStart== null and pd.lastEnd== null">
+				and	sche.lesson_starttime &gt;= DATE_FORMAT(NOW(),'%y-%m-%d')
+		</if>
+		<if test="pd.lastStart!= null and pd.lastStart != ''"><!-- 关键词检索 -->
+			order by sche.lesson_starttime
+		</if>
+		
+	</select>
+
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		SELECT 
+		sche.LESSON_NAME,
+		sche.TEACHERS_ID,
+		sche.COURSE_ID,
+		sche.CLASSROOM_ID,
+		sche.LESSON_STARTTIME,
+		sche.LESSON_ENDTIME,
+		sche.LESSON_TIME_TYPE,
+		sche.MODIFYBY,
+		sche.MODIFYDATE,
+		sche.CREATEBY,
+		sche.CREATEDATE,
+		sche.LESSONS_ID,
+		u.USER_ID,
+		classroom.CLASSROOM_ID,
+		u.NAME AS teachername,classroom.classroom_name AS classname,subject.SUBJECT_NAME,subject.SUBJECT_ID,subject.SUBJECT_COLOR,course.courses_name AS coursesname,DATE_FORMAT(sche.LESSON_STARTTIME,'%Y-%m-%d') as lesson_time,DATE_FORMAT(sche.LESSON_STARTTIME,'%H:%i:%s') as starttime
+		FROM school_schedule sche
+		LEFT JOIN sys_user u ON(u.USER_ID=sche.teachers_id )
+		LEFT JOIN school_classroom classroom
+		on(classroom.classroom_id=sche.classroom_id)
+		LEFT JOIN school_course course ON(course.courses_id=sche.course_id)
+		LEFT JOIN school_subject subject ON(subject.subject_id=sche.subject_id)
+		<!-- select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include> -->
+		where 1=1
+		<if test="keywords!= null and keywords != ''"><!-- 关键词检索 -->
+			and
+			(
+				u.NAME like CONCAT('%',#{keywords},'%')
+			)
+		</if>
+		<if test="COURSES_ID!=null and COURSES_ID!=''">
+			and sche.course_id =#{COURSES_ID}
+		</if>
+		<if test="CLASSROOM_ID!=null and CLASSROOM_ID!=''">
+			and sche.CLASSROOM_ID =#{CLASSROOM_ID}
+		</if>
+		<if test="lastStart!= null and lastStart != ''"><!-- 关键词检索 -->
+			and
+			(
+					sche.lesson_starttime &gt;= DATE_FORMAT(#{lastStart},'%y-%m-%d')
+			)
+		</if>
+		<if test="lastEnd!= null and lastEnd != ''"><!-- 关键词检索 -->
+			and
+			(
+					sche.lesson_endtime &lt;= DATE_FORMAT(DATE_ADD(#{lastEnd},INTERVAL 1 DAY),'%y-%m-%d')
+			)
+		</if>
+		<if test="lastStart== null and lastEnd== null">
+				and	sche.lesson_starttime &gt;= DATE_FORMAT(NOW(),'%y-%m-%d')
+		</if>
+		<if test="lastStart!= null and lastStart != ''"><!-- 关键词检索 -->
+			order by sche.lesson_starttime
+		</if>
+	</select>
+
+	<!-- 根据时间查询有课的老师    查询明天有课的老师-->
+	<select id="listAllUserByTime" parameterType="pd" resultType="pd">
+		select DISTINCT su.USER_ID,su.`NAME`,su.EMAIL,su.PHONE from school_schedule ss left join sys_user su
+		on ss.teachers_id=su.user_id
+		where  DATE_FORMAT(ss.lesson_starttime,'%y-%m-%d') = DATE_FORMAT(DATE_ADD(NOW(),INTERVAL 1 DAY),'%y-%m-%d')
+	</select>
+	<!-- 根据时间查询今日课表的课程和老师   老师未评价课程 -->
+	<select id="listScheByTime" parameterType="pd" resultType="pd">
+		select DISTINCT su.USER_ID,su.`NAME`,su.PHONE,su.EMAIL,sc.COURSES_ID,sc.COURSES_NAME,sub.SUBJECT_NAME from school_schedule ss left join sys_user su
+		on ss.teachers_id=su.user_id
+		LEFT JOIN school_course sc
+		ON ss.course_id=sc.courses_id
+		LEFT JOIN school_subject sub
+		ON sub.subject_id=ss.subject_id
+		where  DATE_FORMAT(ss.lesson_starttime,'%y-%m-%d') = DATE_FORMAT(NOW(),'%y-%m-%d')
+	</select>
+	<select id="listTeacherByTime" parameterType="pd" resultType="pd">
+		select DISTINCT su.USER_ID,su.`NAME`,su.PHONE,su.EMAIL from school_schedule ss left join sys_user su
+		on ss.teachers_id=su.user_id
+		where  DATE_FORMAT(ss.lesson_starttime,'%y-%m-%d') = DATE_FORMAT(NOW(),'%y-%m-%d')
+	</select>
+	<!-- 根据时间和老师查询  老师在此日期里的课程   发送课表-->
+	<select id="listScheByUser" parameterType="pd" resultType="pd">
+		select DISTINCT SC.COURSES_ID,SC.COURSES_NAME,SU.USER_ID,SU.`NAME`,SU.EMAIL,SS.LESSON_STARTTIME,SS.LESSON_ENDTIME,SS.LESSON_NAME,SUB.SUBJECT_NAME
+				from school_schedule SS
+				LEFT JOIN school_course SC
+				ON SS.course_id=SC.courses_id
+				LEFT JOIN sys_user SU
+				on SU.USER_ID=SS.teachers_id
+				LEFT JOIN school_subject SUB
+				on SS.subject_id=SUB.subject_id
+		WHERE TEACHERS_ID=#{USER_ID} AND DATE_FORMAT(SS.lesson_starttime,'%y-%m-%d')=DATE_FORMAT(DATE_ADD(NOW(),INTERVAL 1 DAY),'%y-%m-%d')
+	</select>
+	<!-- 查询冲突的学生 -->
+	<select id="checkStudent" parameterType="page" resultType="pd">
+		select distinct stu.student_name from school_arrange sasa
+		left join web_student stu
+		on sasa.student_id = stu.student_id
+		left join school_course sco
+		on sasa.course_id=sco.courses_id
+		left join school_schedule ssc
+		on ssc.course_id=sco.courses_id
+		where ((#{pd.start} &gt;= ssc.lesson_starttime and #{pd.start} &lt; ssc.lesson_endtime) or (#{pd.end} &gt;= ssc.lesson_starttime and #{pd.end} &lt; ssc.lesson_endtime) or (#{pd.end} &gt;= ssc.lesson_endtime and #{pd.start} &lt; ssc.lesson_starttime))
+				and stu.student_id is not null and sasa.course_id=#{pd.COURSE_ID} and stu.student_id IN
+	(
+	select ws.student_id from school_schedule ss 
+	LEFT JOIN school_course sc on ss.course_id=sc.courses_id
+	LEFT JOIN school_arrange sa on sc.courses_id=sa.course_id
+	LEFT JOIN web_student ws on ws.student_id=sa.student_id
+	where sc.courses_id != #{pd.COURSE_ID} and ws.student_id is not null
+	and ((#{pd.start} &gt;= ss.lesson_starttime and #{pd.start} &lt; ss.lesson_endtime) or (#{pd.end} &gt;= ss.lesson_starttime and #{pd.end} &lt; ss.lesson_endtime) or (#{pd.end} &gt;= ss.lesson_endtime and #{pd.start} &lt; ss.lesson_starttime))
+	)
+	</select>
+
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where
+		LESSONS_ID in
+		<foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+</mapper>

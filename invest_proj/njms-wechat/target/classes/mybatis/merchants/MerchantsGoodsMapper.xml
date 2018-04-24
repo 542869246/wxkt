@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MerchantsGoodsMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		MERCHANTS_GOODS
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		GOODS_ID,
+		MERCHANTS_ID,
+		LOGO,
+		NAME,
+		SPECIFICATIONS,
+		SHELF_LIFE,
+		UNIT_PRICE,
+		SAVE_MODE
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{GOODS_ID},
+		#{MERCHANTS_ID},
+		#{LOGO},
+		#{NAME},
+		#{SPECIFICATIONS},
+		#{SHELF_LIFE},
+		#{UNIT_PRICE},
+		#{SAVE_MODE}
+	</sql>
+
+	<!-- 列表 -->
+	<select id="merchantsGoodsAll" parameterType="page" resultType="com.flc.entity.merchants.MerchantsGoods">
+		select
+			<include refid="Field"></include>
+		from 
+			<include refid="tableName"></include>
+		where 
+	</select>
+</mapper>

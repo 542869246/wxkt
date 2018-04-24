@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ProductsinfoMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		PRODUCTS_PRODUCTSINFO
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		PRODUCTSINFO_ID,	
+		PRODUCTS_NAME,	
+		PRODUCTS_TYPE1_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{PRODUCTSINFO_ID},	
+		#{PRODUCTS_NAME},	
+		#{PRODUCTS_TYPE1_ID},	
+		#{PRODUCTSINFO_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		 INSERT INTO 
+		`products_productsinfo`
+		 VALUES(#{PRODUCTSINFO_ID},#{PRODUCTS_NAME},
+		 #{PRODUCTS_TYPE1_ID},#{PRODUCTS_COUNTERSTATE},#{PRODUCTS_PAPERSTATE},
+		 #{PRODUCTS_SQJFBI},#{PRODUCTS_ZEXIANTU},#{PRODUCTS_YJBJJZ},
+		 #{PRODUCTS_START},#{PRODUCTS_TYPE2_ID},#{PRODUCTS_CREATEBY},
+		 #{PRODUCTS_CREATETIME},#{PRODUCTS_ATTRIBUTE},#{PRODUCTS_TERM},
+		 #{PRODUCTS_AMOUT},#{PRODUCTS_NHSR},#{PRODUCTS_TEXT},#{PRODUCTS_INCOME});
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			PRODUCTSINFO_ID = #{PRODUCTSINFO_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			PRODUCTS_NAME=#{PRODUCTS_NAME},
+		 	PRODUCTS_TYPE1_ID=#{PRODUCTS_TYPE1_ID},
+		 	PRODUCTS_COUNTERSTATE=#{PRODUCTS_COUNTERSTATE},
+		 	PRODUCTS_PAPERSTATE=#{PRODUCTS_PAPERSTATE},
+		 	PRODUCTS_SQJFBI=#{PRODUCTS_SQJFBI},
+		 	PRODUCTS_ZEXIANTU=#{PRODUCTS_ZEXIANTU},
+		 	PRODUCTS_YJBJJZ=#{PRODUCTS_YJBJJZ},
+			PRODUCTS_START=#{PRODUCTS_START},
+			PRODUCTS_TYPE2_ID=#{PRODUCTS_TYPE2_ID},
+			<!-- PRODUCTS_CREATEBY=#{PRODUCTS_CREATEBY}, -->
+			<!-- PRODUCTS_CREATETIME=#{PRODUCTS_CREATETIME}, -->
+			PRODUCTS_ATTRIBUTE=#{PRODUCTS_ATTRIBUTE},
+			PRODUCTS_TERM=#{PRODUCTS_TERM},
+			PRODUCTS_AMOUT=#{PRODUCTS_AMOUT},
+			PRODUCTS_NHSR=#{PRODUCTS_NHSR},
+			PRODUCTS_TEXT=#{PRODUCTS_TEXT},
+			PRODUCTS_INCOME=#{PRODUCTS_INCOME}
+		where 
+		PRODUCTSINFO_ID = #{PRODUCTSINFO_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		SELECT 
+			* 
+		FROM 
+			`products_productsinfo` p 
+		INNER JOIN 
+			`products_groupby` pg 
+		ON 
+			p.PRODUCTSINFO_ID = pg.GROUPBY_PRODUCTS_ID
+		where 
+			p.PRODUCTSINFO_ID = #{PRODUCTSINFO_ID}
+	</select>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findAttrById" parameterType="pd" resultType="pd">
+		SELECT * FROM `products_attribute` a INNER JOIN `sys_dictionaries` d ON a.`ATTR_TYPEID`=d.`DICTIONARIES_ID`
+			INNER JOIN `products_productattr` p ON p.PRODUCTATTR_ATTR_TYPEID = a.ATTRIBUTE_ID 
+		WHERE 
+			PRODUCTATTR_PRODUCT_ID  = #{PRODUCTSINFO_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		SELECT * FROM
+			(SELECT  *
+			 FROM products_productsinfo ppi INNER JOIN sys_dictionaries sd ON ppi.PRODUCTS_TYPE1_ID = sd.DICTIONARIES_ID) p
+			 LEFT JOIN (SELECT * FROM `products_productattr` ppa 
+			 INNER JOIN `products_attribute` pa ON pa.`ATTRIBUTE_ID` = ppa.`PRODUCTATTR_ATTR_TYPEID`) pl
+			 ON pl.PRODUCTATTR_PRODUCT_ID = p.PRODUCTSINFO_ID 
+			 INNER JOIN `products_groupby` pg ON pg.GROUPBY_PRODUCTS_ID = p.PRODUCTSINFO_ID
+			WHERE 1=1 
+			<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+				and `PRODUCTS_NAME`  LIKE CONCAT('%', #{pd.keywords},'%')
+			</if>
+			<if test="pd.ATTR_TYPEID!= null and pd.ATTR_TYPEID != ''"><!-- 关键词检索 -->
+				and `DICTIONARIES_ID` =#{pd.ATTR_TYPEID}
+			</if>
+			group by PRODUCTSINFO_ID order by p.PRODUCTS_CREATETIME desc
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			PRODUCTSINFO_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	<!-- 根据类型id查询产品 -->
+	<select id="findProductByTypeId" parameterType="page" resultType="pd">
+		select  * from `products_productsinfo` ppi left join(
+			select * from `products_productattr` ppa INNER JOIN `products_attribute` pa ON pa.`ATTRIBUTE_ID` = ppa.`PRODUCTATTR_ATTR_TYPEID` 
+													 inner join `sys_dictionaries` sd on pa.ATTR_TYPEID = sd.`DICTIONARIES_ID` ) p on ppi.`PRODUCTSINFO_ID` = p.`PRODUCTATTR_PRODUCT_ID`
+			where 1=1
+			<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+				and `PRODUCTS_NAME`  LIKE CONCAT('%', #{pd.keywords},'%')
+			</if>
+			<if test="pd.attrType!= null and pd.attrType != ''"><!-- 关键词检索 -->
+				and `DICTIONARIES_ID` =#{pd.ATTR_TYPEID}
+			</if>
+			group by PRODUCTSINFO_ID 
+	</select>
+	<!-- 查询所有产品信息    不分页 -->
+	<select id="selectAllProducts" resultType="pd">
+		select PRODUCTSINFO_ID,PRODUCTS_NAME from products_productsinfo 
+	</select>
+	
+	<!-- 删除产品所有的相关信息 -->
+	<delete id="delProMartion" parameterType="pd">
+		DELETE FROM `dep_information` WHERE INFORMATION_INFO_ID =#{PRODUCTSINFO_ID}
+	</delete>
+	<delete id="delProGroupMartion" parameterType="pd">
+		delete from `products_groupby`  where GROUPBY_PRODUCTS_ID =#{PRODUCTSINFO_ID}
+	</delete>
+	<delete id="delProDetails" parameterType="pd">
+		DELETE FROM `products_details` WHERE DETAILS_INFO_ID =#{PRODUCTSINFO_ID}
+	</delete>
+	<delete id="delProNews" parameterType="pd">
+		DELETE FROM `products_news` WHERE NEWS_PRODUCTS_ID =#{PRODUCTSINFO_ID}
+	</delete>
+	<delete id="delProAttr" parameterType="pd">
+		DELETE  FROM `products_productattr` WHERE PRODUCTATTR_PRODUCT_ID =#{PRODUCTSINFO_ID}
+	</delete>
+	<update id="delProUser" parameterType="pd">
+		UPDATE `user_invest` SET INVEST_STATE='1' WHERE INVEST_PRODICTS_ID=#{PRODUCTSINFO_ID}
+	</update>
+	
+	
+	
+	
+	
+	
+	
+	
+</mapper>

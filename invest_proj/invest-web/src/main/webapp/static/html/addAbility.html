@@ -1,0 +1,612 @@
+<style>
+.details_partake{
+	margin-left: 10% !important;
+	width: 35% !important;
+	margin-top: 10px;
+}
+.mui-scroll{
+	width: 100% !important;
+	margin-top: -15px;
+	overflow: scroll;
+}
+.mui-card label {
+	width: 100%;
+}
+
+.mui-card .mui-input-row:after {
+	height: 1px;
+}
+.hidden{
+	display:none;
+}
+.mui-input-group .mui-input-row{
+	height: 45px;
+	margin-top: 10px !important;
+}
+.details_comment_div{
+	background-color: #FFF;
+	height: 45px !important;
+}
+.mui-numbox [class*=numbox-btn]{
+	width: 30px;
+	height: 30px;
+}
+.mui-numbox-input{
+	float: left;
+	margin-left: -10px !important;
+	text-indent: 0px !important;
+}
+.button_style{
+	width: 30px;
+	height: 30px;
+}
+.mui-numbox{
+	float: left !important;
+	width: 90px;
+	height: 30px;
+	margin: 10px 6px !important;
+}
+.ability_nav{
+	width: 100%;
+	margin:0 auto;
+	overflow: hidden; 
+}
+.ability_nav,input{
+	font-size: 10px;
+}
+.ability_names{
+	float: left;  
+	width:20px;                                                                                                                                                                                                                     
+	height: 30px;
+	line-height: 17px;
+	margin-top: 10px;
+	margin-left: 8px;
+}
+.ability_val{
+	float: left;
+}
+.zyf_takein_btn{
+	line-height: 45px !important;
+}
+/* .VALUE-RESET{ */
+/* 	POSITION: ABSOLUTE; */
+/* 	WIDTH: 30%; */
+/* 	HEIGHT: 20PX; */
+/* 	BOTTOM: 0PX; */
+/* 	RIGHT: 0PX; */
+/* 	BACKGROUND-COLOR: #999; */
+/* } */
+</style>
+<form class="mui-input-group" id="add_edit_ability" style="background-color: #FFF3DD;">
+
+	<input type="hidden" id="ability_id" />
+	<input type="hidden" id="student_id" />
+	
+	<div class="details_comment "
+		style="margin-top: 20px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn">学生姓名</div>
+			<input type="text" class="mui-input-clear"
+				maxlength="25" id="student_name" required="required"
+				data-input-clear="2" readonly="readonly">
+
+		</div>
+	</div>
+
+	<div class="details_comment mui-input-row"
+		style="margin-top: 15px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn">上课时间</div>
+			<input id="schedule_time" type="text" class="search_input1"
+				style="border: none;" required="required" readonly="readonly">
+		</div>
+	</div>
+
+
+	<div class="details_comment mui-input-row"
+		style="margin-top: 15px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn">科目</div>
+			<input type="text" class="mui-input-clear" id="subject_name" required="required"
+				data-input-clear="2" readonly="readonly">
+		</div>
+	</div>
+	
+	<div class="details_comment mui-input-row"
+		style="margin-top: 15px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn">课程内容</div>
+			<input id="course_content" type="text" class="search_input1"
+				style="border: none;" required="required">
+		</div>
+	</div>
+	
+	<div id="add-or-edit-ability">
+		<div class="details_comment mui-input-row">
+			<div class="details_comment_div" style="border: none;background-color: #FFF3DD;">
+				<input id="showCityPicker3" type="text" class="search_input1"
+				placeholder="点击设置默认值" style="width: 45%;text-align: right;background-color: #999；color:white;" />
+				<button type="button" id="reset" class="mui-btn mui-btn-danger mui-btn-outlined" style="width: 45%;height: 99%;background-color: white;border-radius: 10px;">
+		            	清空
+		            <span class="mui-icon mui-icon-trash"></span>
+		        </button>
+			</div>
+		</div>
+		
+		<div class="mui-scroll-wrapper"
+			style="position: relative; min-height: 200px; margin-top: 10px;" id="subject_list">
+			<div class="mui-scroll">
+	
+				<div class="mui-card">
+				
+				
+				</div>
+	
+			</div>
+		</div>
+		
+		<div>
+			<div class="details_partake">
+				<div class="details_partake_button" id="reg">确认</div>
+			</div>
+			<div class="details_partake">
+				<div class="details_partake_button back_student">返回</div>
+			</div>
+		</div>
+	
+	</div>
+	<div id="add_or_edit_ability"></div>
+
+</form>
+
+<script type="text/javascript" src="../static/wx/js/city.data-3.js"></script>
+<script type="text/javascript">
+
+
+mui.init();
+
+var mask = mui.createMask(function () {
+	var flushStr=`<div class="mui-pull-top-pocket mui-block">
+	<div class="mui-pull">
+	<div class="mui-pull-loading mui-icon mui-spinner"></div>
+	<div class="mui-pull-caption"><p>懂得静观大地开花结果的人</p></div>
+	<div class="mui-pull-caption"><p>决不会为失去的一切而痛心</p></div>
+	</div></div>`
+	$(".mui-backdrop").html(flushStr);
+    return mask.clickClose;;
+})
+mask.show()
+mask.clickClose = false;
+mask.clickClose=true;
+mask.close();
+
+(function($, doc) {
+	$.init();
+	$.ready(function() {
+		/**
+		 * 获取对象属性的值
+		 * 主要用于过滤三级联动中，可能出现的最低级的数据不存在的情况，实际开发中需要注意这一点；
+		 * @param {Object} obj 对象
+		 * @param {String} param 属性名
+		 */
+		var _getParam = function(obj, param) {
+			return obj[param] || '';
+		};
+		var cityPicker3 = new $.PopPicker({
+			layer: 3
+		});
+		cityPicker3.setData(cityData3);
+		var showCityPickerButton = doc.getElementById('showCityPicker3');
+		showCityPickerButton.addEventListener('tap', function(event) {
+			cityPicker3.show(function(items) {
+				showCityPickerButton.value = "默认值：" + _getParam(items[0], 'value') + _getParam(items[1], 'value') + _getParam(items[2], 'value');
+				//返回 false 可以阻止选择框的关闭
+				//return false;
+				if(showCityPickerButton.value != ''){
+					var abilityvalue = doc.getElementsByClassName('ability_value')
+					var scorevalue = doc.getElementsByClassName('score_value')
+					
+					for(var i = 0;i<abilityvalue.length;i++){
+						if(Number(showCityPickerButton.value.split("：")[1])>100){
+							abilityvalue[i].value = 100
+							scorevalue[i].value = 100
+						}else{
+							abilityvalue[i].value = Number(showCityPickerButton.value.split("：")[1])
+							scorevalue[i].value = Number(showCityPickerButton.value.split("：")[1])
+						}
+						
+						abilityvalue[i].addEventListener('change',function(){
+							console.log(abilityvalue.value);
+						});
+						scorevalue[i].addEventListener('change',function(){
+							console.log(scorevalue.value);
+						});
+					}
+				}
+				
+			});
+		}, false);
+	});
+})(mui, document);
+
+mui('#scroll3').scroll().scrollTo(0,0);
+
+
+$(function() {
+	
+	//获取选中的值
+	function getCheckBoxRes(item){
+	    var checkVal = '';
+	    for(i = 0; i < item.length; i++){
+	        if(item[i].checked){
+	        	if(checkVal != ''){
+	        		checkVal += ","+item[i].value;
+	        	}else{
+	        		checkVal += item[i].value;
+	        	}
+	        }
+	    }
+	    return checkVal;
+	}
+	
+	$("#message").click(function(){
+		$(this).addClass("hidden");
+		$("#ability_show").removeClass("hidden")
+	})
+	
+
+	var location = (window.location+'').split('/');
+	var basePath = location[0]+"//"+location[2]+"/"+location[3];
+	var url = basePath+"/";
+	
+	setTimeout(function(){
+		addAbility(url)
+		editAbility(url)
+		if($("#ability_id").val() == ""){
+			$("#add_or_edit_ability").remove()
+			$(".add_or_edit_ability").remove()
+		}else{
+			$("#add-or-edit-ability").remove()
+			$(".add-or-edit-ability").remove()
+		}
+		
+		
+	},50)
+	
+		
+		//改变学生时根据时间的值获取科目信息
+		$("#student").change(function(){
+			if($("#leave_time").val() != ""){
+				subjectAjax()
+			}
+		})
+		
+		//点击确认时执行提交操作
+		mui("#add-or-edit-ability").on("tap","#reg",function(){
+			var STUDENT_ID = $("#student_id").val();
+			var SUBJECT_ID = $("#subject_id").val();
+			var SCHEDULE_TIME = $("#schedule_time").val();
+			var COURSE_CONTENT = $("#course_content").val();
+			
+			var typeid = "";
+			var ABILITYS = new Array();
+			var SCORES = new Array();
+			$(".ability_name").each(function(index,value){
+				if(index != 0){
+					typeid += ","+$(this).data("did");
+				}else{
+					typeid += $(this).data("did");
+				}
+				ABILITYS[index] = $(this).next().find(".ability_value").val();
+				SCORES[index] = $(this).parent().parent().next().find(".score_value").val();
+			})
+			
+			var len = 0;
+			var ABILITY_VALUE = "";
+			var SCORE_VALUE = "";
+			for(var i = 0; i < ABILITYS.length; i++){
+				
+				if(ABILITYS[i] == 0){
+					len++;
+				}
+				if(SCORES[i] == 0){
+					len++;
+				}
+				if(i > 0){
+					ABILITY_VALUE += ","+ABILITYS[i]
+					SCORE_VALUE += ","+SCORES[i]
+				}else{
+					ABILITY_VALUE += ABILITYS[i]
+					SCORE_VALUE += SCORES[i]
+				}
+			}
+			
+			if(COURSE_CONTENT == ''){
+				mui.toast('请填写完整信息！','提示','确定')
+				return false;
+			}
+			
+// 			定义新增时传入的参数
+			var values = {
+					url:url,
+					STUDENT_ID:STUDENT_ID,
+					SUBJECT_ID:SUBJECT_ID,
+					SCHEDULE_TIME:SCHEDULE_TIME,
+					COURSE_CONTENT:COURSE_CONTENT,
+					ABILITY_VALUE:ABILITY_VALUE,
+					SCORE_VALUE:SCORE_VALUE,
+					TYPEID:typeid
+			}
+			
+			if(len>0){
+				var btnArray = ['否', '是'];
+                mui.confirm(len+'处能力和积分为0，是否去修改？', '能力值为零', btnArray, function(e) {
+                    if (e.index == 1) {
+                    	return false;
+                    }else{
+                    	gosave(url,values)
+                    }
+                    
+                }) 
+			}else{
+				gosave(url,values)
+			}
+			
+		})
+		
+		//返回能力值学生显示页面
+		mui("#add-or-edit-ability").on("tap",".back_student",function(){
+			intostudent(url)
+		});
+		
+		mui('.mui-scroll-wrapper').scroll({
+			deceleration: 0.0005, //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+			indicators: false, //是否显示滚动条
+			scrollY:true
+		});
+		
+		//返回能力值详情页面
+		mui("#add_or_edit_ability").on("tap",".back_list",function(){
+			intovalue(url)
+		})
+		
+		//修改能力值
+		mui("#add_or_edit_ability").on("tap","#edit",function(){
+			var ABILITY_ID = $("#ability_id").val();
+			var SCORE_VALUE = $("#scores_value").val();
+			var ABILITY_VALUE = $("#abilitys_value").val();
+			var COURSE_CONTENT = $("#course_content").val()
+			
+			if(COURSE_CONTENT == ''){
+				mui.toast('请填写完整信息！','提示','确定')
+				return false;
+			}
+			
+			$.ajax({
+				type:"post",
+				url:url+"ability/editvalue",
+				data:{ABILITY_ID:ABILITY_ID,COURSE_CONTENT:COURSE_CONTENT,ABILITY_VALUE:ABILITY_VALUE,SCORE_VALUE:SCORE_VALUE},
+				dataType:"json",
+				success:function(data){
+					if(data > 0){
+						mui.alert('信息修改成功！','提示','确定')
+						intovalue(url)
+						
+					}else{
+						mui.alert('信息修改失败！','提示','确定')
+						intovalue(url)
+					}
+				},
+				error:function(){
+					mui.alert('信息修改失败！','提示','确定')
+					intovalue(url)
+				},
+				beforeSend:function(){
+					mask.show();
+					mask.clickClose = false;
+				},
+				complete:function(){
+					mask.clickClose = true;
+					mask.close();
+				}
+			})
+		})
+		
+		mui("#add-or-edit-ability").on("tap","#reset",function(){
+			$("#showCityPicker3").val("");
+			var abilityvalue = document.getElementsByClassName('ability_value')
+			var scorevalue = document.getElementsByClassName('score_value')
+			for(var i = 0;i<abilityvalue.length;i++){
+				abilityvalue[i].value = 0
+				scorevalue[i].value = 0
+				abilityvalue[i].addEventListener('change',function(){
+					console.log(abilityvalue[i].value);
+				});
+				scorevalue[i].addEventListener('change',function(){
+					console.log(scorevalue[i].value);
+				});
+			}
+		})
+		
+})
+
+// 		生成div代码
+		function addAbility(url){
+			var STUDENT_ID = $("#student_id").val();
+			var SUBJECT_ID = $('#subject_id').val();
+			$.ajax({
+				type:"post",
+				url:url+'dictionaries/getAbilityType',
+				data:{STUDENT_ID:STUDENT_ID,SUBJECT_ID:SUBJECT_ID},
+				dataType: 'json',
+				success:function(data){
+					
+					$.each(data,function(index,item){
+						if(item.NAME == "毅力"){
+							name = "毅  力"
+						}else{
+							name = item.NAME
+						}
+						$(".mui-card").append(`
+								<div class="ability_nav">
+								<div style="float:left;width:50%">
+								<div style="width:60%;margin:0 auto;">
+									<div class="ability_names ability_name" data-did="${item.DICTIONARIES_ID}">${name}</div>
+									<div class="ability_val">
+										<div class="mui-numbox" data-numbox-step='10' data-numbox-min='0' data-numbox-max='100'>  
+											<button class="mui-btn mui-numbox-btn-minus button_style" type="button">-</button>  
+											<input class="mui-numbox-input ability_value" type="number" style="width: 30px !important;" />  
+											<button class="mui-btn mui-numbox-btn-plus button_style" type="button">+</button>  
+										</div>
+									</div>
+									</div>
+									</div>
+									<div style="float:right;width:50%">
+									<div style="width:60%;margin:0 auto;">
+									<div class="ability_names">对应积分</div>
+									<div class="ability_val">
+										<div class="mui-numbox" data-numbox-step='10' data-numbox-min='0' data-numbox-max='100'>  
+											<button class="mui-btn mui-numbox-btn-minus button_style" type="button">-</button>  
+											<input class="mui-numbox-input score_value" type="number" style="width: 30px !important;" />  
+											<button class="mui-btn mui-numbox-btn-plus button_style" type="button">+</button>  
+										</div>
+									</div>
+									</div>
+									</div>
+								</div>
+						`)
+						
+						mui(".mui-numbox").numbox()
+					})		
+				},
+				beforeSend:function(){
+					mask.show();
+					mask.clickClose = false;
+				},
+				complete:function(){
+					mask.clickClose = true;
+					mask.close();
+				}
+			})
+	
+		}
+		
+
+	//	增加能力值
+	function gosave(url,values){
+		$.ajax({
+			type:"post",
+			url:url+"ability/save",
+			data:{STUDENT_ID:values.STUDENT_ID,SUBJECT_ID:values.SUBJECT_ID,
+				SCHEDULE_TIME:values.SCHEDULE_TIME,COURSE_CONTENT:values.COURSE_CONTENT,
+				ABILITY_VALUE:values.ABILITY_VALUE,SCORE_VALUE:values.SCORE_VALUE,TYPEID:values.TYPEID
+				},
+			dataType:"JSON",
+			success:function(data){
+				if(data>0){
+					mui.alert('信息添加成功！','提示','确定')
+					intostudent(url)
+				}else{
+					mui.alert('信息添加失败！','提示','确定')
+					intostudent(url)
+				}
+				
+			},
+			error:function(){
+				mui.alert('信息添加失败！','提示','确定')
+				intostudent(url)
+			},
+			beforeSend:function(){
+				mask.show();
+				mask.clickClose = false;
+			},
+			complete:function(){
+				mask.clickClose = true;
+				mask.close();
+			}
+		})
+	}
+	
+// 	修改页面需要的信息
+	function editAbility(url){
+	
+		var ABILITY_ID = $("#ability_id").val();
+		$.ajax({
+			type:"post",
+			url:url+"ability/findById",
+			data:{ABILITY_ID:ABILITY_ID},
+			dataType:"json",
+			success:function(data){
+				$("#add_or_edit_ability").append(`
+						<div class="details_comment mui-input-row"
+							style="margin-top: 15px; background-color: #FFF3DD;">
+							<div class="details_comment_div">
+								<div class="zyf_takein_btn">能力值</div>
+								<input type="hidden" id="ability_type_id" value=${data.ABILITY_TYPE_ID} />
+								<input type="number" class="mui-input-clear" id="abilitys_value" required="required"
+									data-input-clear="2" value=${data.ABILITY_VALUE}>
+							</div>
+						</div>
+						<div class="details_comment mui-input-row"
+							style="margin-top: 15px; background-color: #FFF3DD;">
+							<div class="details_comment_div">
+								<div class="zyf_takein_btn">积分</div>
+								<input type="number" class="mui-input-clear" id="scores_value" required="required"
+									data-input-clear="2" value=${data.SCORE_VALUE}>
+							</div>
+						</div>
+						<div>
+						<div class="details_partake">
+							<div class="details_partake_button" id="edit">确认</div>
+						</div>
+						<div class="details_partake">
+							<div class="details_partake_button back_list">返回</div>
+						</div>
+					</div>
+				`)
+				
+			}
+		})
+	}
+	
+// 	进入能力值详情页面
+	function intovalue(url){
+		var STUDENT_ID = $("#student_id").val();
+		var SUBJECT_ID = $("#subject_id").val();
+		var START_TIME = $(this).find(".start_time").html();
+		var END_TIME = $(this).find(".end_time").html();
+		
+		$.ajax({
+			type:"get",
+			url:url+'static/html/abilityvalue.html',
+			dataType: 'html',
+			success:function(res){
+				//吧页面加载到主页面 赋值
+				$('#item3mobile').find('.mui-scroll3').html(res);
+				$('#scheduletouch').show();
+				$('#student_id').val(STUDENT_ID);
+				$('#subject_id').val(SUBJECT_ID);
+				$('#start_time').val(START_TIME);
+				$('#end_time').val(END_TIME);
+			}
+		})
+	}
+	
+// 	返回学生详情页面
+	function intostudent(url){
+		var SUBJECT_ID = $("#subject_id").val();
+			var START_TIME = $("#start_time").val();
+			$.ajax({
+				type:"get",
+				url:url+'static/html/noabilityvaluestudent.html',
+				dataType: 'html',
+				success:function(item){
+					$('#item3mobile').find('.mui-scroll3').html(item)
+					$('#scheduletouch').show()
+					$('#subject_id').val(SUBJECT_ID)
+					$('#start_time').val(START_TIME)
+				}
+			})
+	}
+		
+</script>

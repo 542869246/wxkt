@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="CommentMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		news_comment
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		COMMENT_ID,	
+		COMMENT_NEWS_ID,	
+		COMMENT_CONTENT,	
+		COMMENT_USER_ID,	
+		COMMENT_CREATETIME,
+		COMMENT_STATE
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{COMMENT_ID},	
+		#{COMMENT_NEWS_ID},	
+		#{COMMENT_CONTENT},	
+		#{COMMENT_USER_ID},	
+		#{COMMENT_CREATETIME},
+		#{COMMENT_STATE}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			COMMENT_ID = #{COMMENT_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			COMMENT_NEWS_ID = #{COMMENT_NEWS_ID},
+			COMMENT_CONTENT = #{COMMENT_CONTENT},
+			COMMENT_USER_ID = #{COMMENT_USER_ID},
+			COMMENT_CREATETIME = #{COMMENT_CREATETIME},
+			COMMENT_STATE = #{COMMENT_STATE},
+		COMMENT_ID = COMMENT_ID
+		where 
+		COMMENT_ID = #{COMMENT_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			COMMENT_ID = #{COMMENT_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+	SELECT *,COUNT(zan_id) zan FROM `news_comment` nc  
+	INNER JOIN web_userinfo u 
+	ON nc.comment_user_id = u.userinfo_id 
+	LEFT JOIN `news_zan` ON comment_id=`ZAN_COMMENT_ID`
+	WHERE COMMENT_NEWS_ID= #{pd.NEWSINFO_ID}
+	AND COMMENT_STATE =0
+	GROUP BY COMMENT_ID
+	ORDER BY zan desc, `COMMENT_CREATETIME` DESC
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			COMMENT_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	
+	
+	<!-- 根据新闻id查询评论内容 -->
+	<select id="findCommentByNewsId" parameterType="page" resultType="pd">
+		SELECT *,COUNT(1) zan 
+		FROM 	
+			news_comment,web_userinfo,news_zan 
+		WHERE comment_user_id=userinfo_id 
+			AND comment_id=ZAN_COMMENT_ID
+			AND COMMENT_NEWS_ID= #{pd.NEWSINFO_ID}
+		GROUP BY comment_id
+		ORDER BY USER_CREATETIME DESC
+	</select>
+	
+	
+</mapper>

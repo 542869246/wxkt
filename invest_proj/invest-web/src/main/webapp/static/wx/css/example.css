@@ -1,0 +1,28 @@
+
+small {
+	opacity: 0.6;
+	font-style: italic;
+	font-size: 14px;
+	margin-left: 5px;
+}
+.list_ul{
+	width: 95%;
+	position: relative;
+	background-color: white;
+	margin: 0 auto;
+	overflow: hidden;
+}
+ul li {
+	position: relative;
+	padding: 5px;
+	background:white;
+	font-size: 13px;
+	z-index: 2;
+	-webkit-transform: translateZ(0px);
+	-moz-transform: translateZ(0px);
+	-ms-transform: translateZ(0px);
+	-o-transform: translateZ(0px);
+	transform: translateZ(0px);
+}
+ul li:nth-child(odd) {
+}

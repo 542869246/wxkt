@@ -1,0 +1,205 @@
+<style>
+.mui-scroll {
+	padding: 10px;
+}
+
+.mui-table-view {
+	background-color: #FFF3DD;
+}
+
+#OA_task_3>.mui-table-view-cell {
+	background-color: #fff;
+	margin-top: 10px;
+	border-radius: 10px;
+}
+
+#OA_task_3>.mui-table-view-cell:after {
+	height: 0px;
+}
+
+/*  #OA_task_3 .mui-slider-handle {  */
+/*  	height: 113px; */
+/*  }  */
+
+.mui-slider-handle>.mui-badge {
+	font-size: 15px;
+	padding: 0px 10px 0px 15px;
+}
+
+h4 {
+	font-size: 14px;
+}
+</style>
+<input type="hidden" id="subject_id" />
+<input type="hidden" id="start_time" />
+<ul id="OA_task_3" class="mui-table-view">
+	
+</ul>
+
+<script>
+	mui.init();
+// 	mui('.mui-scroll-wrapper').scroll({
+// 		deceleration : 0.0005, //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+// 		indicators : true
+// 	//是否显示滚动条
+// 	});
+
+	mui('#scroll3').scroll().scrollTo(0,0);
+	
+	//补零
+	function p(num) {
+		return num < 10 ? '0' + num : num;
+	}
+	
+// 	进入页面加载方法
+	function loadAjax(url){
+		
+		setTimeout(function(){
+			var SUBJECT_ID = $("#subject_id").val();
+			var START_TIME = $("#start_time").val();
+			
+			
+			$.ajax({
+				type:"post",
+				url:url+'ability/unValueStudent',
+				data:{SUBJECT_ID:SUBJECT_ID,START_TIME:START_TIME},
+				dataType: 'json',
+				success:function(data){
+					$("#OA_task_3").html("");
+					var str=``
+						$.each(data,function(index,item){
+							str+=`<li class="mui-table-view-cell mui-media ability_list" >
+							<div class="mui-slider-right mui-disabled">
+								<input type="hidden" value="${item.student_id}" class="student_id"/>
+								<input type="hidden" value="${item.subject_id}" class="subject_id"/>
+								<input type="hidden" value="${item.lesson_starttime}" class="lesson_starttime"/>
+								<a class="mui-btn mui-btn-warning add_ability">添加</a>
+							</div>
+							<div class="mui-slider-handle">
+							<div class="mui-table">
+							<div class="mui-table-cell mui-col-xs-10">
+								<h4 class="mui-ellipsis">学生姓名：<span class="student_name">${item.student_name}</span></h4>
+								<h6>教室：${item.classroom_name}</h6>
+		
+							</div>
+						</div>
+						<div class="mui-table">
+							<div class="mui-table-cell mui-col-xs-6">
+								<h6>课程：${item.courses_name}</h6>
+							</div>
+							<div class="mui-table-cell mui-col-xs-7 mui-text-left">
+								<h6 class="mui-h5">科目：<span class="subject_name">${item.subject_name}</span></h6>
+							</div>
+						</div>
+						<div class="mui-table">
+							<div class="mui-table-cell mui-col-xs-10">
+								<h6>时间：<span class="start_time">${item.lesson_starttime}</span>-<span class="end_time">${item.lesson_endtime}</span></h6>
+							</div>
+						</div>
+								</div>
+							</li>`
+							
+					})
+							
+					$('#OA_task_3').html(str)
+					$('#scheduletouch').show()
+					mui('#scroll3').scroll().scrollTo(0,0);
+					
+					
+//							点击添加学生能力
+							$(".add_ability").on("click",function(){
+								var STUDENT_ID = $(this).parent().parent().find(".student_id").val();
+								var SUBJECT_ID = $(this).parent().parent().find(".subject_id").val();
+								var COURSE_TIME = $(this).parent().parent().find(".lesson_starttime").val();
+								
+			//					传到能力值添加页面的值
+								var STUDENT_NAME = $(this).parent().parent().find(".student_name").html();
+								var START_TIME = $(this).parent().parent().find(".start_time").html();
+								var END_TIME = $(this).parent().parent().find(".end_time").html();
+								var SUBJECT_NAME = $(this).parent().parent().find(".subject_name").html()
+								
+// 								获得学生能力值详细信息
+								var $abilityValue = $.ajax({
+									url:url+'ability/findAbility',
+									data:{STUDENT_ID:STUDENT_ID,SUBJECT_ID:SUBJECT_ID,COURSE_TIME:COURSE_TIME},
+									dataType: 'json'
+								})
+								
+								var $abilityHtml = $.ajax({
+									url:url+'static/html/addAbility.html',
+									dataType:'html'
+								})
+								
+								$.when($abilityHtml, $abilityValue)
+											.done(function(item1,item2){
+									if(item2[0].abilitys.length < 9){
+										$('#item3mobile').find('#OA_task_3').html(item1[0])
+										$("#student_name").val(STUDENT_NAME)
+										$("#student_id").val(STUDENT_ID)
+										$("#schedule_time").val(START_TIME+"-"+END_TIME)
+										$("#subject_name").val(SUBJECT_NAME)
+										$("#subject_id").val(SUBJECT_ID)
+										
+										$('#scheduletouch').hide()
+
+									}else{
+										mui.alert('能力值已存在！','提示','确定')
+									}
+								})
+
+								event.stopPropagation();  
+							
+							})
+							
+//					 		点击学生获取学生的能力值
+							$(".ability_list").click(function(){
+								var STUDENT_ID = $(this).find(".student_id").val();
+								var SUBJECT_ID = $(this).find(".subject_id").val();
+								var COURSE_TIME = $(this).find(".lesson_starttime").val();
+								
+//									传到能力值添加页面的值
+								var STUDENT_NAME = $(this).find(".student_name").html();
+								var START_TIME = $(this).find(".start_time").html();
+								var END_TIME = $(this).find(".end_time").html();
+								var SUBJECT_NAME = $(this).find(".subject_name").html()
+								
+									 $.ajax({
+							         	type:'get',
+										url:url+'static/html/addAbility.html',
+										dataType:'html',
+										success:function(data){
+											$('#item3mobile').find('#OA_task_3').html(data)
+											$("#student_name").val(STUDENT_NAME)
+											$("#student_id").val(STUDENT_ID)
+											$("#schedule_time").val(START_TIME+"-"+END_TIME)
+											$("#subject_name").val(SUBJECT_NAME)
+											$("#subject_id").val(SUBJECT_ID)
+															
+											$('#scheduletouch').hide()
+
+										}
+							      })
+												
+							})	
+					
+				}
+			})
+		},50)
+	}
+
+	$(function() {
+		
+		var location = (window.location+'').split('/');
+		var basePath = location[0]+'//'+location[2]+'/'+location[3];
+		var url = basePath+'/';
+		
+		loadAjax(url)
+		
+		// 		点击刷新列表
+		$('#flushscheduleList').off("click").on("click",function(){
+			mui('.mui-popover').popover('hide',document.getElementById("scheduletouch"));
+			loadAjax(url)
+		})
+		
+	})
+</script>

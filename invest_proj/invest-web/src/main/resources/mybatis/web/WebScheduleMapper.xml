@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="WebScheduleMapper">
+
+	<!--表名 -->
+	<sql id="tableName">
+		WEB_SCHEDULE
+	</sql>
+
+	<!-- 字段 -->
+	<sql id="Field">
+		SCHEDULE_ID,
+		SCHEDULE_IDS,
+		STUDENT_ID,
+		SCHEDULE_TASKTYPE,
+		SCHEDULE_INPUTTIME,
+		SCHEDULE_DATETIME,
+		ISLOOK,
+		ARRIVELEAVETIME,
+		SUBJECT_ID,
+		SCHEDULE_CONTENT,
+		SCHEDULE_TIMEDIFF,
+		SCHEDULE_ADOPT,
+		CREATEBY,
+		CREATEDATE,
+		MODIFYBY,
+		MODIFYDATE,
+		STATE,
+		LESSON_ID
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{SCHEDULE_ID},
+		#{SCHEDULE_IDS},
+		#{STUDENT_ID},
+		#{SCHEDULE_TASKTYPE},
+		#{SCHEDULE_INPUTTIME},
+		#{SCHEDULE_DATETIME},
+		#{ISLOOK},
+		#{ARRIVELEAVETIME},
+		#{SUBJECT_ID},
+		#{SCHEDULE_CONTENT},
+		#{SCHEDULE_TIMEDIFF},
+		#{SCHEDULE_ADOPT},
+		#{CREATEBY},
+		#{CREATEDATE},
+		#{MODIFYBY},
+		#{MODIFYDATE},
+		#{STATE},
+		#{LESSON_ID}
+	</sql>
+
+	<!-- 新增 -->
+	<insert id="save" parameterType="pd">
+		insert into
+		<include refid="tableName"></include>
+		(
+		<include refid="Field"></include>
+		) values (
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 根据日报类型和lesson_id得到数量 -->
+	<select id="getListByTypeAndLes" parameterType="pd" resultType="pd">
+		select *  from web_schedule
+		where lesson_id=#{LESSON_ID}
+		AND schedule_tasktype=#{SCHEDULE_TASKTYPE}
+	</select>
+
+	<!-- 根据学生id插入日程 -->
+	<select id="saveByStudentid" parameterType="pd" resultType="pd">
+		insert into
+		<include refid="tableName"></include>
+		(
+		<include refid="Field"></include>
+		) values (
+		<include refid="FieldValue"></include>
+		)
+
+	</select>
+		<!-- 需要自己审核日报 -->
+	<select id="findStats" parameterType="pd" resultType="pd">
+
+					SELECT ws.SCHEDULE_ID,ws.STUDENT_ID,ws.SCHEDULE_TASKTYPE,STU.STUDENT_NAME,ws.SCHEDULE_INPUTTIME,ws.SCHEDULE_DATETIME,ws.ARRIVELEAVETIME,
+		ws.STATE,
+		ws.SUBJECT_ID,
+		ws.SCHEDULE_CONTENT,
+		ws.SCHEDULE_TIMEDIFF,
+		ws.SCHEDULE_ADOPT,ss.`SUBJECT_NAME`,sc.`user_id` FROM `web_schedule` ws INNER JOIN `school_schedule` S
+		ON ws.`lesson_id`=S.`lessons_id`
+		INNER JOIN `school_course` sc
+		ON sc.`courses_id`=S.`course_id`
+		INNER JOIN web_student STU
+		ON ws.STUDENT_ID=STU.`student_id`
+		INNER JOIN `school_subject` SS
+		ON ws.SUBJECT_ID=SS.`subject_id`
+		WHERE `user_id`=#{user_id}
+		AND lesson_starttime LIKE CONCAT(CONCAT('%', CURDATE()),'%')
+		AND `state`='1'
+		ORDER BY lesson_starttime ASC
+	</select>
+	<!-- 自己的日报 -->
+		<select id="findMydaily" parameterType="pd" resultType="pd">
+		SELECT ws.SCHEDULE_ID,ws.STUDENT_ID,ws.SCHEDULE_TASKTYPE,STU.STUDENT_NAME,ws.SCHEDULE_INPUTTIME,ws.SCHEDULE_DATETIME,ws.ARRIVELEAVETIME,
+		ws.STATE,
+		ws.SUBJECT_ID,
+		ws.SCHEDULE_CONTENT,
+		ws.SCHEDULE_TIMEDIFF,
+		ws.SCHEDULE_ADOPT,ss.`SUBJECT_NAME`, teachers_id  FROM `web_schedule` ws INNER JOIN `school_schedule` S
+		ON ws.`lesson_id`=S.`lessons_id`
+		INNER JOIN web_student STU
+		ON ws.STUDENT_ID=STU.`student_id`
+		INNER JOIN `school_subject` SS
+		ON SS.subject_id=ws.SUBJECT_ID	
+		WHERE teachers_id=#{user_id}
+		AND lesson_starttime LIKE CONCAT(CONCAT('%', CURDATE()),'%')
+	</select>
+
+	<select id="getListNum" parameterType="pd" resultType="pd">
+		SELECT 2
+		type,count(0) num FROM school_leave sl
+		inner JOIN web_student ws
+		ON(ws.student_id=sl.student_id)
+		inner JOIN school_schedule ss
+		on(sl.lessons_id=ss.lessons_id)
+		inner JOIN school_subject sub
+		on(sub.subject_id=ss.subject_id)
+		INNER JOIN school_classroom sc
+		on(sc.classroom_id=ss.classroom_id)
+		inner JOIN web_users wu
+		on(wu.USER_ID=ss.teachers_id and wu.USER_ID=#{user_id})
+		inner join
+		school_course sco
+		on(sco.courses_id=ss.course_id)
+		union
+		SELECT 1,count(0)
+		FROM web_schedule S
+		LEFT JOIN web_student STU ON S.student_id =
+		STU.student_id
+		LEFT JOIN
+		school_subject SS ON ss.subject_id=S.subject_id
+		INNER JOIN
+		`web_stu_webuser` sw ON S.`student_id`=sw.`student_id`
+		INNER
+		JOIN `web_users` wu ON sw.`users_id`=wu.`users_id`
+		INNER JOIN
+		school_course sc ON sc.user_id=wu.`user_id`
+		WHERE
+		wu.`user_id`=#{user_id}
+		union
+		select 3,count(0) from web_ability wa
+		inner join web_student ws on
+		ws.student_id=wa.student_id
+		inner join
+		sys_dictionaries sd on
+		sd.DICTIONARIES_ID=wa.ability_type_id
+		inner join
+		school_subject_teacher
+		sst on
+		(sst.teacher_id=#{user_id} and
+		sst.subject_id=wa.subject_id)
+
+	</select>
+
+
+	<select id="subjectlist" parameterType="pd" resultType="pd">
+
+
+		SELECT
+		sst.SUBJECT_TEACHER_ID,su.NAME,ss.SUBJECT_NAME,sst.REMARK,ss.subject_id
+		FROM school_subject_teacher sst
+		LEFT JOIN sys_user su
+		ON
+		sst.teacher_id=su.USER_ID
+		LEFT JOIN school_subject ss
+		ON
+		ss.subject_id=sst.subject_id
+		WHERE su.`USER_ID`=#{USER_ID}
+
+	</select>
+
+
+	<select id="getListNumAll" parameterType="pd" resultType="pd">
+		select
+		SUM(num) num from(
+
+		SELECT count(0) num FROM school_leave sl
+		inner JOIN
+		web_student ws
+		ON(ws.student_id=sl.student_id)
+		inner JOIN
+		school_schedule ss
+		on(sl.lessons_id=ss.lessons_id)
+		inner JOIN
+		school_subject sub
+		on(sub.subject_id=ss.subject_id)
+		INNER JOIN
+		school_classroom sc
+		on(sc.classroom_id=ss.classroom_id)
+		inner JOIN
+		web_users wu
+		on(wu.USER_ID=ss.teachers_id and wu.USER_ID=#{user_id})
+		inner join
+		school_course sco
+		on(sco.courses_id=ss.course_id)
+		union
+		SELECT
+		count(0)
+		FROM web_schedule S
+		LEFT JOIN web_student STU ON S.student_id =
+		STU.student_id
+		LEFT JOIN
+		school_subject SS ON ss.subject_id=S.subject_id
+		INNER JOIN
+		`web_stu_webuser` sw ON S.`student_id`=sw.`student_id`
+		INNER
+		JOIN `web_users` wu ON sw.`users_id`=wu.`users_id`
+		INNER JOIN
+		school_course sc ON sc.user_id=wu.`user_id`
+		WHERE
+		wu.`user_id`=#{user_id} AND S.STATE='1'
+		union
+		select count(0) from
+		web_ability wa
+		inner join web_student ws on ws.student_id=wa.student_id
+		inner join sys_dictionaries sd on
+		sd.DICTIONARIES_ID=wa.ability_type_id
+		inner join school_subject_teacher
+		sst on
+		(sst.teacher_id=#{user_id} and
+		sst.subject_id=wa.subject_id)
+		)emp
+	</select>
+
+
+
+	<select id="Coursekelist" parameterType="pd" resultType="pd">
+
+		SELECT
+		C.COURSES_NAME,S.STUDENT_NAME,A.ARRANGE_ID,S.STUDENT_ID FROM
+		school_arrange A
+		LEFT JOIN web_student S
+		ON A.student_id=S.student_id
+		LEFT JOIN school_course C
+		ON A.course_id=C.courses_id
+		WHERE
+		S.student_id=#{student_id}
+
+	</select>
+	<!-- 删除 -->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where
+		SCHEDULE_ID = #{SCHEDULE_ID}
+	</delete>
+
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+		STATE = #{STATE}
+		where
+		SCHEDULE_ID = #{SCHEDULE_ID}
+	</update>
+	
+	<!-- 根据类型和lessons_id修改内容 -->
+	<update id="editByTypeAndLes" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+		SCHEDULE_CONTENT=#{schedule_content}
+		where lesson_id=#{LESSON_ID}
+		AND schedule_tasktype=#{SCHEDULE_TASKTYPE}
+	</update>
+	
+	<!-- 修改 -->
+	<update id="editByISLook" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		ISLOOK=#{ISLOOK}
+		where
+		STUDENT_ID = #{STUDENT_ID}
+	</update>
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		SELECT
+		S.SCHEDULE_ID,S.STUDENT_ID,S.SCHEDULE_TASKTYPE,S.SCHEDULE_INPUTTIME,S.SCHEDULE_DATETIME,STU.STUDENT_NAME,S.ARRIVELEAVETIME,
+		S.STATE,
+		S.SUBJECT_ID,
+		S.SCHEDULE_CONTENT,
+		S.SCHEDULE_TIMEDIFF,
+		S.SCHEDULE_ADOPT,
+		SS.SUBJECT_NAME,
+		wu.`user_id`,
+		sc.`courses_id`,
+		S.student_id
+		FROM web_schedule S
+		LEFT JOIN web_student STU ON
+		S.student_id = STU.student_id
+		LEFT JOIN
+		school_subject SS ON
+		ss.subject_id=S.subject_id
+		INNER JOIN
+		`web_stu_webuser` sw ON
+		S.`student_id`=sw.`student_id` INNER JOIN
+		`web_users` wu ON
+		sw.`users_id`=wu.`users_id`
+		INNER JOIN school_course
+		sc ON
+		sc.user_id=wu.`user_id`
+		WHERE wu.`user_id`=#{USER_ID}
+		AND
+		S.`schedule_id`=#{SCHEDULE_ID}
+	</select>
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+			(
+			<!-- 根据需求自己加检索条件 字段1 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') or 字段2 
+				LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') -->
+			)
+		</if>
+	</select>
+	<!-- 根据学生id查询list -->
+	<select id="findByStudentList" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		<where>
+			<if test="STUDENT_ID != nulll">
+				STUDENT_ID = #{STUDENT_ID}
+			</if>
+			<if test="SCHEDULE_DATETIME != null">
+				and to_days(SCHEDULE_DATETIME)=
+				to_days(#{SCHEDULE_DATETIME})
+			</if>
+		</where>
+		order by SCHEDULE_DATETIME
+	</select>
+
+
+
+
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+	</select>
+
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where
+		SCHEDULE_ID in
+		<foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+
+
+</mapper>

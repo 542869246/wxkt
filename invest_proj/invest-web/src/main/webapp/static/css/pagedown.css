@@ -1,0 +1,18 @@
+@CHARSET "UTF-8";
+.btn_down {
+	height: 1rem;
+	width: 4rem;
+	text-align: center;
+	margin: 1rem auto 0;
+	display: block;
+	font-size: 8px;
+	color: #666;
+}
+
+.btn_down.up {
+	transform: rotate(180deg);
+	-ms-transform: rotate(180deg); /* IE 9 */
+	-moz-transform: rotate(180deg); /* Firefox */
+	-webkit-transform: rotate(180deg); /* Safari 和 Chrome */
+	-o-transform: rotate(180deg); /* Opera */
+}

@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="NewsinfoMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		NEWS_NEWSINFO
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		NEWSINFO_ID,	
+		NEWINFO_TITLE,	
+		NEWINFO_CONTENT,	
+		NEWINFO_SECONDTITLE,	
+		THUMBNAIL,	
+		NEWINFO_TYPE_ID,	
+		NEWINFO_STATE,	
+		NEWINFO_CREATEBY,	
+		NEWINFO_CREATETIME
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{NEWSINFO_ID},	
+		#{NEWINFO_TITLE},	
+		#{NEWINFO_CONTENT},	
+		#{NEWINFO_SECONDTITLE},	
+		#{THUMBNAIL},	
+		#{NEWINFO_TYPE_ID},	
+		#{NEWINFO_STATE},	
+		#{NEWINFO_CREATEBY},	
+		#{NEWINFO_CREATETIME}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			NEWSINFO_ID = #{NEWSINFO_ID}
+	</delete>
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			NEWINFO_TITLE = #{NEWINFO_TITLE},
+			NEWINFO_CONTENT = #{NEWINFO_CONTENT},
+			NEWINFO_SECONDTITLE = #{NEWINFO_SECONDTITLE},
+			THUMBNAIL = #{THUMBNAIL},
+			NEWINFO_TYPE_ID = #{NEWINFO_TYPE_ID},
+			NEWINFO_STATE = #{NEWINFO_STATE},
+			NEWINFO_CREATEBY = #{NEWINFO_CREATEBY}
+		where 
+		NEWSINFO_ID = #{NEWSINFO_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			NEWSINFO_ID = #{NEWSINFO_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select news.*,dic.`NAME`,COUNT(newsc.COLLECT_INFO_ID) size, us.`NAME` usName
+		from news_newsinfo news INNER JOIN sys_dictionaries dic on  
+		dic.DICTIONARIES_ID=news.NEWINFO_TYPE_ID INNER JOIN sys_user  us on us.USER_ID=news.NEWINFO_CREATEBY
+		LEFT JOIN news_collect 
+		newsc  on news.NEWSINFO_ID=newsc.COLLECT_INFO_ID 
+		<where>
+			1=1
+			<if test="pd.NEWINFO_TITLE!='' and pd.NEWINFO_TITLE!=null">
+				and	NEWINFO_TITLE like concat('%',#{pd.NEWINFO_TITLE},'%')
+					
+			</if>
+			<if test="pd.NEWINFO_TYPE_ID!=null and pd.NEWINFO_TYPE_ID!=''">
+				   	and	NEWINFO_TYPE_ID=#{pd.NEWINFO_TYPE_ID}
+			</if>
+			<if test="pd.lastLoginStart!=null and pd.lastLoginStart!=''"><!-- 登录时间检索 -->
+				<!-- and str_to_date(NEWINFO_CREATETIME,'%Y-%m-%d')=#{pd.NEWINFO_CREATETIME} -->
+				and NEWINFO_CREATETIME &gt;= #{pd.lastLoginStart} 
+			</if>
+			<if test="pd.lastLoginEnd!=null and pd.lastLoginEnd!=''"><!-- 登录时间检索 -->
+				and NEWINFO_CREATETIME &lt;= #{pd.lastLoginEnd} 
+			</if>	
+		</where>
+			 GROUP BY NEWSINFO_ID order by NEWINFO_CREATETIME desc
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			NEWSINFO_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+
+</mapper>

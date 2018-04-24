@@ -1,0 +1,239 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SchoolArrangeMapper">
+
+	<!--表名 -->
+	<sql id="tableName">
+		school_arrange
+	</sql>
+
+	<!-- 字段 -->
+	<sql id="Field">
+		ARRANGE_ID,
+		COURSE_ID,
+		STUDENT_ID,
+		ARRANGE_NAME,
+		CREATEBY,
+		CREATEDATE,
+		MODIFYBY,
+		MODIFYDATE
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{ARRANGE_ID},
+		#{COURSE_ID},
+		#{STUDENT_ID},
+		#{ARRANGE_NAME},
+		#{CREATEBY},
+		#{CREATEDATE},
+		#{MODIFYBY},
+		#{MODIFYDATE}
+	</sql>
+
+	<!-- 新增 -->
+	<insert id="save" parameterType="pd">
+		insert into
+		<include refid="tableName"></include>
+		(
+		<include refid="Field"></include>
+		) values (
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where
+		ARRANGE_ID = #{ARRANGE_ID}
+	</delete>
+
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		ARRANGE_ID = #{ARRANGE_ID},
+		COURSE_ID = #{COURSE_ID},
+		STUDENT_ID =
+		#{STUDENT_ID},
+		ARRANGE_NAME = #{ARRANGE_NAME},
+		CREATEBY = #{CREATEBY},
+		CREATEDATE = #{CREATEDATE},
+		MODIFYBY = #{MODIFYBY},
+		MODIFYDATE =
+		#{MODIFYDATE},
+		ARRANGE_ID = ARRANGE_ID
+		where
+		ARRANGE_ID = #{ARRANGE_ID}
+	</update>
+
+	<!-- 通过COURSE_ID获取数据 -->
+	<select id="findByICourseid" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where
+		COURSE_ID = #{COURSE_ID}
+	</select>
+
+	<!-- 通过COURSE_ID获取数据2.0 -->
+	<select id="findByICourseid2" parameterType="pd" resultType="pd">
+		SELECT sa.*,ws.student_name from school_arrange sa
+		INNER JOIN web_student ws on(ws.student_id=sa.student_id)
+		WHERE sa.course_id= #{COURSE_ID}
+	</select>
+
+	<!-- 查找学生集合 -->
+	<select id="findByCourseid" parameterType="pd" resultType="pd">
+SELECT ws.*,W.`student_id` FROM web_student ws INNER JOIN`web_stu_webuser` W
+ON ws.`student_id`=W.`student_id`INNER
+JOIN `web_users` we
+ON W.`users_id`=we.`users_id`
+INNER JOIN `school_schedule` ss
+ON ss.`teachers_id`=we.`user_id`
+WHERE
+ss.`course_id`=#{COURSE_ID}
+AND ss.`teachers_id`=#{USER_ID}
+AND ss.`lesson_starttime`=#{LESSON_STARTTIME}
+AND ws.`student_id` NOT IN (
+	SELECT wsc.`student_id` FROM web_schedule wsc 
+	INNER JOIN `school_schedule` S
+	WHERE wsc.`lesson_id`=S.`lessons_id`
+	AND `schedule_tasktype`=#{SCHEDULE_TASKTYPE}
+	AND S.`lesson_starttime`=#{LESSON_STARTTIME}
+)AND ws.`student_id` NOT IN(
+	
+		SELECT sl.`student_id` FROM `school_leave` sl INNER JOIN`school_schedule` sch
+		ON sl.`lessons_id`=sch.`lessons_id`
+		WHERE sch.`lesson_starttime`=#{LESSON_STARTTIME}
+		AND sch.`subject_id`=#{SUBJECT_ID}
+	)	
+
+
+	</select>
+
+	<select id="findStuId" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where
+		ARRANGE_ID = #{ARRANGE_ID}
+	</select>
+
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+			(
+			<!-- 根据需求自己加检索条件 字段1 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') or 字段2 
+				LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') -->
+			)
+		</if>
+	</select>
+
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+	</select>
+	<!-- 根据学生id查询学生课程安排表 -->
+	<select id="findByStudentId" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where STUDENT_ID=#{STUDENT_ID}
+	</select>
+	<!-- 根据学生listid查询学生课程安排表 -->
+	<select id="findByListStudentId" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where STUDENT_ID in
+		<foreach item="item" index="index" collection="list" open="("
+			separator="," close=")">
+			#{item.STUDENT_ID}
+		</foreach>
+	</select>
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where
+		ARRANGE_ID in
+		<foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<!-- 这个lessons请假的学生 -->
+	<select id="leaveList" parameterType="pd" resultType="pd">
+		select leave_id,sl.student_id,lessons_id,leavecause,S.student_name
+		from school_leave sl
+		JOIN web_student S
+		ON sl.student_id=S.student_id
+		where 1=1
+		<if test="lessons_id!= null and lessons_id != ''"><!-- 关键词检索根据课程ID筛选 -->
+			and
+			(
+			lessons_id=#{lessons_id}
+			)
+		</if>
+	</select>
+
+
+	<!-- 这个lessons没请假的学生 -->
+	<select id="lessonsNoLeaveList" parameterType="pd" resultType="pd">
+		SELECT C.COURSES_NAME,S.STUDENT_NAME,A.ARRANGE_ID,S.STUDENT_ID FROM
+		school_arrange A
+		LEFT JOIN web_student S
+		ON A.student_id=S.student_id
+		LEFT JOIN school_course C
+		ON A.course_id=C.courses_id
+		where
+		C.courses_id=#{COURSES_ID}
+		and NOT EXISTS (
+		select student_id from
+		school_leave
+		where lessons_id=#{lessons_id}
+		AND student_id=S.STUDENT_ID
+		)
+	</select>
+
+	<!-- 批量添加请假信息 -->
+	<insert id="saveAllLeave" parameterType="pd">
+		insert into
+		school_leave(leave_id,student_id,lessons_id,leavecause,leavedate)
+		values
+		(#{leave_id},#{student_id},#{lessons_id},#{leavecause},#{leavedate})
+	</insert>
+
+
+	<!-- 这节课评价的学生 -->
+	<select id="lessonsEvalList" parameterType="pd" resultType="pd">
+		SELECT
+		se.EVALUATE_ID,se.STUDENT_ID,se.LESSONS_ID,se.EVALUATE_CONTENT,se.EVALUATEDATE,ws.student_name
+		from school_evaluate se
+		INNER JOIN web_student ws
+		on(ws.student_id=se.STUDENT_ID)
+		INNER JOIN school_schedule ss
+		on(ss.lessons_id=se.LESSONS_ID)
+		where se.LESSONS_ID = #{lessons_id}
+	</select>
+
+
+</mapper>

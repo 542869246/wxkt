@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Lead_informationMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		LEAD_INFORMATION
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		LEAD_ID,	
+		LEAD_NAME,	
+		INFORMATION_TYPE,	
+		TITLE,	
+		INFO,	
+		SOURCE,	
+		STATE,	
+		IS_DEL,	
+		CREATE_BY,	
+		CREATE_TIME,	
+		UPDATE_BY,	
+		UPDATE_TIME,	
+		LEAD_INFORMATION_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{LEAD_ID},	
+		#{LEAD_NAME},	
+		#{INFORMATION_TYPE},	
+		#{TITLE},	
+		#{INFO},	
+		#{SOURCE},	
+		#{STATE},	
+		#{IS_DEL},	
+		#{CREATE_BY},	
+		#{CREATE_TIME},	
+		#{UPDATE_BY},	
+		#{UPDATE_TIME},	
+		#{LEAD_INFORMATION_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			LEAD_INFORMATION_ID = #{LEAD_INFORMATION_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			LEAD_ID = #{LEAD_ID},
+			LEAD_NAME = #{LEAD_NAME},
+			INFORMATION_TYPE = #{INFORMATION_TYPE},
+			TITLE = #{TITLE},
+			INFO = #{INFO},
+			SOURCE = #{SOURCE},
+			STATE = #{STATE},
+			IS_DEL = #{IS_DEL},
+			
+			UPDATE_BY = #{UPDATE_BY},
+			UPDATE_TIME = #{UPDATE_TIME},
+		LEAD_INFORMATION_ID = LEAD_INFORMATION_ID
+		where 
+		LEAD_INFORMATION_ID = #{LEAD_INFORMATION_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			LEAD_INFORMATION_ID = #{LEAD_INFORMATION_ID}
+			and
+			STATE = 0;
+	</select>
+	
+	<!-- 
+	<select id="findByIdANDTYPE" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			LEAD_INFORMATION_ID = #{LEAD_INFORMATION_ID}
+			and
+			INFORMATION_TYPE = #{INFORMATION_TYPE}
+	</select> -->
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where STATE = 0
+		<if test="pd.LEAD_ID!=null and pd.LEAD_ID!=''">
+			and LEAD_ID = #{pd.LEAD_ID}
+		</if >
+		<if test="pd.INFORMATION_TYPE!=null and pd.INFORMATION_TYPE!=''">
+			and INFORMATION_TYPE = #{pd.INFORMATION_TYPE}
+		</if>
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+				(
+					
+				<!--	根据需求自己加检索条件
+					
+					 or 
+					字段2 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') 
+				-->
+				)
+		</if>
+		order by CREATE_TIME desc
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where STATE = 0
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			LEAD_INFORMATION_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+</mapper>

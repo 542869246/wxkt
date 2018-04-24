@@ -1,0 +1,557 @@
+
+
+<form class="mui-input-group" style="background-color: #FFF3DD;">
+	<input type="hidden" value="${sessionScope.loginteacher.USER_ID}"
+		id="teaid">
+	<div class="details_comment "
+		style="margin-top: 5px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<select id="coursesel"
+				style="font-size: 10px; text-indent: 8px; height: 100%; margin-top: 0px; width: 80%;"
+				onchange='btnCoursesel(this[selectedIndex].text)'>
+
+			</select>
+			<div class="zyf_takein_btn" id="">选择课程</div>
+		</div>
+	</div>
+	<div class="details_comment mui-input-row"
+		style="margin-top: 5px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn">评价时间</div>
+			<input id="SCHEDULR_INPUTTIME" type="text" class="search_input"
+				placeholder="点击选择时间" style="border: none;" required="required">
+		</div>
+	</div>
+	<div class="details_comment "
+		style="margin-top: 5px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<select id="SCHEDULE_TASKTYPE"
+				onchange='btnChange(this[selectedIndex].text,this[selectedIndex].value);'
+				style="font-size: 10px; text-indent: 8px; height: 100%; margin-top: 0px; width: 80%;">
+				<!-- <option value="0">请选择作业类型</option>
+				<option value="1">请选择作业类型1</option> -->
+				<!-- <c:forEach items="${schList }" var="sch">
+												<option value="${sch.BIANMA }">${sch.NAME }</option>
+											</c:forEach> -->
+			</select>
+			<div class="zyf_takein_btn" id="">作业类型</div>
+		</div>
+	</div>
+	<div class="details_comment "
+		style="margin-top: 5px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<select id="subject"
+				style="font-size: 10px; text-indent: 8px; height: 100%; margin-top: 0px; width: 80%;">
+			
+			</select>
+			
+			<div class="zyf_takein_btn" id="">选择科目</div>
+		</div>
+	</div>
+	<div class="details_comment mui-input-row"
+		style="margin-top: 5px; background-color: #FFF3DD;">
+		<div class="details_comment_div"> 
+			<div class="zyf_takein_btn">到离时间</div>
+			<input id="ARRIVELEAVETIME" type="text" class="search_input1"
+				placeholder="点击选择时间" style="border: none;" required="required">
+		</div>
+	</div>
+	<div class="details_comment mui-input-row"
+		style="margin-top: 5px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn" id="">学习时长</div>
+			<input type="number" class="mui-input-clear" placeholder="请输入学习时长/分"
+				maxlength="32" id="SCHEDULE_TIMEDIFF" required="required" min="0" max="60"/>
+		</div>
+	</div>
+	<div class="details_comment mui-input-row"
+		style="margin-top: 5px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<div class="zyf_takein_btn" id="">学习内容</div>
+			<input type="text" class="mui-input-clear" placeholder="请输入学习内容"
+				maxlength="32" id="SCHEDULE_CONTENT" required="required" />
+		</div>
+	</div>
+
+
+	<div class="details_comment "
+		style="margin-top: 5px; background-color: #FFF3DD;">
+		<div class="details_comment_div">
+			<select id="SCHEDULE_ADOPT"
+				style="font-size: 10px; text-indent: 8px; height: 100%; margin-top: 0px; width: 80%;">
+				<option value="">请选择是否达标</option>
+				<option value="0">达标</option>
+				<option value="1">不达标</option>
+			</select>
+			<div class="zyf_takein_btn" id="">是否达标</div>
+		</div>
+	</div>
+
+	<!-- 			<div class="details_comment mui-input-row" style="margin-top: 5px;"> -->
+	<!-- 				<div class="details_comment_div"> -->
+	<!-- 					<div class="zyf_takein_btn" id="comment_value_submit">评语</div> -->
+	<!-- 					<input type="text" class="mui-input-clear" maxlength="100" placeholder="选中学生输入评语" id="pingyu" required="required"/> -->
+	<!-- 				</div> -->
+	<!-- 			</div> -->
+
+	<div style="margin-left: 20px; margin-top: 10px;">
+		<div style="width: 84%; margin-left: 5.5%;" class="stusee"
+			id="showstus">
+			<div class="mui-input-row mui-checkbox mui-left ">
+				<label
+					style="color: red; width: 100%; margin-left: 10px; margin-top: 3px;"
+					id="labletishi">选择课程获得学生信息</label>
+			</div>
+		</div>
+	</div>
+
+	<div id="stats"></div>
+	<div class="details_partake">
+		<p class="details_partake_button" id="reg" onclick="reg()">确认</p>
+	</div>
+	<div class="details_partake">
+		<p class="details_partake_button" id="return" onclick="returnList()">返回</p>
+	</div>
+	
+</form>
+<script>	
+var url
+		$(function(){
+			
+			var location = (window.location+'').split('/');
+			var basePath = location[0]+'//'+location[2]+'/'+location[3];
+			url = basePath+'/';
+			
+		})
+		
+var c;
+
+$(function(){
+	$('#SCHEDULE_TIMEDIFF').on('blur',function(){
+		var v=$('#SCHEDULE_TIMEDIFF').val();
+	    if(v > 60){
+	        $(this).val("60");
+	    }else if(v<0){
+	    	$(this).val("0");
+	    }
+	})
+})
+function p(num) {
+	return num < 10 ? '0' + num : num;
+}
+
+//获得几月几号
+function getNowDate() {
+	var da = new Date()
+	var year = da.getFullYear()
+	var month = da.getMonth() + 1
+	var date = da.getDate()
+	var hour = p(da.getHours())
+	var min = p(da.getMinutes())
+	var sec = p(da.getSeconds())
+	var nowDate = [ year, month, date ].join('-') + ' '
+			+ [ hour, min, sec ].join(':')//2018-04-03 10:10:47
+	return month + "月" + date + "日"
+}
+
+function btnCoursesel(values){
+	$("#subject").parent().parent().show();		
+	if(values=='点击选择课程'){
+		
+		$("#subject").parent().parent().show();		
+		$("#SCHEDULE_ADOPT").parent().parent().hide();
+		$("#ARRIVELEAVETIME").parent().parent().hide();
+		$("#SCHEDULE_TIMEDIFF").parent().parent().hide();
+		$("#SCHEDULE_CONTENT").parent().parent().hide();
+		$("#subject").val("0");
+		$("#ARRIVELEAVETIME").val("");
+		$("#SCHEDULE_ADOPT").val("");
+		$("#SCHEDULE_TIMEDIFF").val("");
+		$("#SCHEDULE_CONTENT").val("");
+		$("#SCHEDULE_TASKTYPE").val("0");
+		
+	}
+  	c=$("#coursesel").val();	
+	 
+	
+		  $.ajax({
+			  url:url+'teacherin/stats',
+			data:{"COURSES_ID":c},
+			type:"POST",
+			success:function(data){
+				if(data==0){
+					$("#stats").html('');
+					var option=`<tr style="display: none;"><td>
+				<input type="text" value="1" id="STATE" name="STATE"/>
+					</td></tr>`;
+					
+				$("#stats").append(option)
+				}
+				
+				else{
+					$("#stats").html('');
+					var option=`<tr style="display: none;">
+						<td>            
+						<input type="text" value="0" id="STATE" name="STATE"/>
+					</td></tr>`;
+					$("#stats").append(option)
+					
+				}
+			}
+			
+		}); 
+		 
+		 
+		$.ajax({
+			url:url+'teacherin/addsatas',
+			data:{"USER_ID":$('#user_id').text()},
+			type:"POST",
+			dataType:"json",
+			success:function(data){
+				
+				$(data).each(function(index,item){
+					$("#subject").html('');
+
+				
+
+					 var subjest=item.teachCourseList
+					 var option="<option value='0'>请选择</option>";
+					 var options="";
+					$(subjest).each(function(index,items){
+						var da = items.lesson_starttime;
+	    				da = new Date(da);
+	  					var hour = p(da.getHours());
+	 					var min = p(da.getMinutes());
+	  					var date = [hour,min].join(':');
+	  					var de = items.lesson_endtime;
+	    				de = new Date(de);
+	  					var hour = p(de.getHours())
+	 					var min = p(de.getMinutes())
+	  					var dates = [hour,min].join(':') 
+						option+="<option value="+items.subject_id+"  lib="+items.lessons_id+">"+date+"    -   "+dates+"/"+items.subject_name+"</option>";
+					
+							
+						
+						
+					}) 
+					$("#subject").append(option);
+				
+				})
+			
+
+			}
+			
+		}) 
+}
+//选择作业类型
+function btnChange(typeName,values){
+
+	
+	
+	$("#SCHEDULE_ADOPT").parent().parent().hide();
+	$("#ARRIVELEAVETIME").parent().parent().hide();
+	$("#SCHEDULE_TIMEDIFF").parent().parent().hide();
+	$("#SCHEDULE_CONTENT").parent().parent().hide();
+	$("#subject").val("0");
+	$("#ARRIVELEAVETIME").val("");
+	$("#SCHEDULE_ADOPT").val("");
+	$("#SCHEDULE_TIMEDIFF").val("");
+	$("#SCHEDULE_CONTENT").val("");
+	 var courseid = $("#coursesel").val();
+	 var currentTime =new Date().Format("yyyy-MM-dd HH:mm");
+	 if(typeName=="上课内容"){
+					
+			/* $("#SCHEDULE_ADOPT").parent().parent().show(); */
+			
+			$("#SCHEDULE_TIMEDIFF").parent().parent().show();
+			 $("#SCHEDULE_CONTENT").parent().parent().show(); 
+			 
+	}else if(typeName=="课后小结"){
+		
+		/* $("#SCHEDULE_ADOPT").parent().parent().show(); */
+		
+		$("#SCHEDULE_TIMEDIFF").parent().parent().show();
+		 $("#SCHEDULE_CONTENT").parent().parent().show(); 
+		$("#SCHEDULE_ADOPT").parent().parent().show();
+		
+	}else if(typeName="到达时间"){
+		
+		 $("#ARRIVELEAVETIME").parent().parent().show(); 
+			$("#zyf_takein_btn").parent().parent().show();
+		
+	}
+	else if(typeName="离开时间"){
+		
+		 $("#ARRIVELEAVETIME").parent().parent().show(); 
+			$("#zyf_takein_btn").parent().parent().show();
+		
+	}
+}
+<!--日期-->
+var btns = mui('.search_input');//评价时间
+btns.each(function(i, btn) {
+	btn.addEventListener('tap',function(){　
+		var dtPicker = new mui.DtPicker({
+			"type": "datetime",
+			beginDate: new Date(1996, 12, 20),//设置开始日期 
+		    endDate: new Date(2100, 12, 20)//设置结束日期 　　　
+		});　　
+		dtPicker.show(function(rs){
+			$('.search_input').val(rs.text)
+			dtPicker.dispose();
+		});
+	}, false);
+}); 
+var btns1 = mui('.search_input1');//到达时间
+btns1.each(function(i, btn) {
+	btn.addEventListener('tap',function(){　
+		var dtPicker = new mui.DtPicker({
+			"type": "datetime",
+			beginDate: new Date(1996, 12, 20),//设置开始日期 
+		    endDate: new Date(2100, 12, 20)//设置结束日期 　　　
+		});　　
+		dtPicker.show(function(rs){
+			$('.search_input1').val(rs.text)
+			dtPicker.dispose();
+		});
+	}, false);
+});
+
+ mui.init();  
+ var mask = mui.createMask(function () {
+		var flushStr=`<div class="mui-pull-top-pocket mui-block">
+		<div class="mui-pull">
+		<div class="mui-pull-loading mui-icon mui-spinner"></div>
+		<div class="mui-pull-caption"><p>懂得静观大地开花结果的人</p></div>
+		<div class="mui-pull-caption"><p>决不会为失去的一切而痛心</p></div>
+		</div></div>`
+		$(".mui-backdrop").html(flushStr);
+     return mask.clickClose;;
+ })
+	mask.show()
+	mask.clickClose = false;
+ mask.clickClose=true;
+	mask.close(); 
+
+$(function(){
+	init();
+	
+	$("#leave").click(function(){
+		location.href="${pageContext.request.contextPath }/leave/goleave"
+	})
+	
+	
+})
+function init(){
+	$("#subject").parent().parent().hide();
+	$("#SCHEDULE_ADOPT").parent().parent().hide();
+	$("#ARRIVELEAVETIME").parent().parent().hide();
+	$("#SCHEDULE_TIMEDIFF").parent().parent().hide();
+	$("#SCHEDULE_CONTENT").parent().parent().hide();
+}
+$("#subject").bind("change",function(){
+//		alert($("#coursesel").val());
+//		alert($("#coursesel").find("option:selected").text());
+	getStudents();
+})
+Date.prototype.Format = function (fmt) { //author: meizz   
+	//var time2 = new Date().Format("yyyy-MM-dd HH:mm:ss");
+var o = {  
+    "M+": this.getMonth() + 1, //月份   
+    "d+": this.getDate(), //日   
+    "H+": this.getHours(), //小时   
+    "m+": this.getMinutes(), //分   
+    "s+": this.getSeconds(), //秒   
+    "q+": Math.floor((this.getMonth() + 3) / 3), //季度   
+    "S": this.getMilliseconds() //毫秒   
+};  
+if (/(y+)/.test(fmt)) fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));  
+for (var k in o)  
+if (new RegExp("(" + k + ")").test(fmt)) fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));  
+return fmt;  
+}  
+
+
+ function getStudents(){
+	 var courseid = $("#coursesel").val();
+	 var user_id=$('#user_id').text();
+	 var subject_id=$.trim($("#subject").val());
+	 var arr=$("#subject").find('option:selected').text();
+	 var starttime=arr.split("-")[0]; 
+	 var schedule_tasktype = $.trim($("#SCHEDULE_TASKTYPE").val());
+	 var mydate = new Date();
+	 var str = "" + mydate.getFullYear() + "-";
+	 str += (mydate.getMonth()+1) + "-";
+	 str += mydate.getDate() + " ";
+	 var lesson_starttime=$.trim(str+starttime)
+	 console.log(courseid)
+	 console.log(user_id)
+	 console.log(lesson_starttime) 
+	 console.log(schedule_tasktype)
+	 $(".studentNo").remove();
+	 if(courseid ==0){
+		 return false;}
+	  $.ajax({
+			type : "POST",
+			url:url+'/teacherin/getStudents',
+			data : {
+				COURSE_ID:courseid,
+				USER_ID:user_id,
+				SCHEDULE_TASKTYPE:schedule_tasktype,
+				LESSON_STARTTIME:lesson_starttime,
+				SUBJECT_ID:subject_id
+			},
+			traditional : true,
+			cache : false,
+			success : function(data) {
+				console.log(data)
+				var strVar = "";
+				for(var i=0;i<data.length;i++){
+					  strVar += "<div class=\"mui-input-row mui-checkbox mui-left studentNo\" style=''line-height:40px;\">";
+					    strVar += "	<label style=\"width: 100%; margin-left: 30px;\">";
+					    strVar += data[i].student_name;
+					    strVar += "<\/label>";
+					    strVar += "<input name=\"stucheck\" ";
+					    strVar += "	value=\"";
+					    strVar += data[i].student_id;
+					    strVar += "\" type=\"checkbox\">";
+					    strVar += "<\/div>";
+					    
+					   
+				}
+				$("#showstus").append(strVar);
+			}
+	 }) 
+}
+ function reg() {	
+	 var SCHEDULE_TIMEDIFF = $.trim($("#SCHEDULE_TIMEDIFF").val());
+		var SCHEDULE_CONTENT = $.trim($("#SCHEDULE_CONTENT").val());
+		var SCHEDULR_INPUTTIME = $.trim($("#SCHEDULR_INPUTTIME").val());
+		var SCHEDULE_TASKTYPE = $.trim($("#SCHEDULE_TASKTYPE").val());
+		console.log(SCHEDULE_TASKTYPE);
+		var ARRIVELEAVETIME = $.trim($("#ARRIVELEAVETIME").val());//到达时间
+		var subject=$.trim($("#subject").val());
+		var typeName=$.trim($("#SCHEDULE_TASKTYPE").text());;
+		var CREATEBY = $.trim($("#teaid").val());
+		var SCHEDULE_ADOPT = $.trim($("#SCHEDULE_ADOPT").val());
+		var coursesel = $.trim($("#coursesel").val());
+		var STATE=$.trim($("#STATE").val());
+
+		var LESSONS_ID=$("#subject").find('option:selected').attr('lib');
+
+		
+	//	alert(SCHEDULE_TIMEDIFF+"  "+SCHEDULE_CONTENT+"  "+SCHEDULR_INPUTTIME+"  "+SCHEDULE_TASKTYPE+"  "+SCHEDULE_ADOPT+"  1")
+		if(coursesel==0){
+			mui.alert("请选择课程");
+			return false;
+		}
+		if(SCHEDULR_INPUTTIME==""){
+			mui.alert("请选择时间");
+			return false;
+		}
+		
+		if(SCHEDULE_TASKTYPE=="" ||SCHEDULE_TASKTYPE==0){
+			mui.alert("请作业类型");
+			return false;
+		}
+		if(SCHEDULE_TASKTYPE=="zylr"){
+			if(subject==0){
+				mui.alert("请选择科目");
+				return false;
+			}
+			if(SCHEDULE_TIMEDIFF==""){
+				mui.alert("请输入学习时长");
+				return false;
+			}
+			if(SCHEDULE_CONTENT==""){
+				mui.alert("请输入学习内容");
+				return false;
+			}
+		}
+		if(SCHEDULE_TASKTYPE=="zyys"){
+			if(subject==0){
+				mui.alert("请选择科目");
+				return false;
+			}
+			if(SCHEDULE_TIMEDIFF==""){
+				mui.alert("请输入学习时长");
+				return false;
+			}
+			if(SCHEDULE_CONTENT==""){
+				mui.alert("请输入学习内容");
+				return false;
+			}
+			if(SCHEDULE_ADOPT==""){
+				mui.alert("请输入是否达标");
+				return false;
+			}
+		}
+		if(SCHEDULE_TASKTYPE=="3" || SCHEDULE_TASKTYPE=="4"){
+			if(ARRIVELEAVETIME==""){
+				mui.alert("请选择"+typeName);
+				return false;
+			}
+		}
+		var obj =document.getElementsByName("stucheck");
+		var stu='您选择的学生是：';
+		var stus = '';
+		for(var i =0;i<obj.length;i++){
+			if(obj[i].checked){
+				stu+=obj[i].value+',';
+				stus+=obj[i].value+'|';
+			}
+		}
+//			stu=stu.substring(0,stu.length-1);
+		if(stu=='您选择的学生是：'){
+			mui.alert("您还没有选择学生");
+			return false;
+		}
+//			mui.alert(stu=='您选择的学生是：'?"您还没有选择学生":stu.substring(0,stu.length-1));
+		stus=stus.substring(0,stus.length-1);
+		 $.ajax({
+					type : "POST",
+					url:url+'/teacherin/getreg',
+					data : {
+                         SCHEDULE_TIMEDIFF     :  SCHEDULE_TIMEDIFF     ,
+                         SCHEDULE_CONTENT      :  SCHEDULE_CONTENT      ,
+                         ARRIVELEAVETIME    :  ARRIVELEAVETIME	  ,
+						 SCHEDULE_INPUTTIME :  SCHEDULR_INPUTTIME ,
+						 SCHEDULE_TASKTYPE  :  SCHEDULE_TASKTYPE  ,
+						 stus               :  stus               ,
+						 SUBJECT_ID			:	subject			  ,
+						 SCHEDULE_ADOPT     :  SCHEDULE_ADOPT     ,
+						 COURSES_ID          :  coursesel          ,
+						 CREATEBY:CREATEBY,
+						 COURSES_ID	:c,
+						 STATE:STATE,
+						 LESSONS_ID:LESSONS_ID
+
+					},
+					beforeSend:function(){
+						mask.show()
+						mask.clickClose=false;
+					},
+					complete:function(){
+						mask.clickClose=true;
+						mask.close()
+					},
+					dataType : 'json',
+					cache : false,
+				
+				}).done(function(data){
+					mui.alert('操作成功!点击确定返回',function(){
+						mask.show()
+						mask.clickClose=false;
+						location.href=url+"/teacherHome/tologin"
+					})
+				}).fail(function(){
+					mui.alert('error')
+				}); 
+	}
+ 
+ function returnList(){
+	 mask.show()
+	mask.clickClose=false;
+	location.href=url+"/teacherHome/tologin"
+ }
+	</script>

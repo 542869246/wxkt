@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="AdvertisingMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		ADVERTISING
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		AD_ID,
+		NAME,
+		URL,
+		REGION_ID,
+		REGION_NAME
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{AD_ID},
+		#{NAME},
+		#{URL},
+		#{REGION_ID},
+		#{REGION_NAME}
+	</sql>
+	<!-- 商家列表 -->
+	<select id="advertisingList" parameterType="page" resultType="com.flc.entity.advertising.Advertising">
+		SELECT 
+		<include refid="Field"></include>
+		FROM 
+		<include refid="tableName"></include>
+		WHERE REGION_ID = #{REGION_ID}
+	</select>
+</mapper>

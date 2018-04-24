@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="InvestMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		USER_INVEST
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		INVEST_ID,	
+		INVEST_USER_ID,	
+		INVEST_PRODICTS_ID,	
+		INVEST_CREATETIME,	
+		INVEST_CREATEBY,	
+		INVEST_DICTIONARIESID,	
+		INVEST_STATE,	
+		INVEST_ID
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{INVEST_ID},	
+		#{INVEST_USER_ID},	
+		#{INVEST_PRODICTS_ID},	
+		#{INVEST_CREATETIME},	
+		#{INVEST_CREATEBY},	
+		#{INVEST_DICTIONARIESID},	
+		#{INVEST_STATE},	
+		#{INVEST_ID}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			INVEST_ID = #{INVEST_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			INVEST_ID = #{INVEST_ID},
+			INVEST_USER_ID = #{INVEST_USER_ID},
+			INVEST_PRODICTS_ID = #{INVEST_PRODICTS_ID},
+			INVEST_CREATETIME = #{INVEST_CREATETIME},
+			INVEST_CREATEBY = #{INVEST_CREATEBY},
+			INVEST_DICTIONARIESID = #{INVEST_DICTIONARIESID},
+			INVEST_STATE = #{INVEST_STATE},
+		INVEST_ID = INVEST_ID
+		where 
+		INVEST_ID = #{INVEST_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			INVEST_ID = #{INVEST_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		<!-- select * from user_invest INNER JOIN web_userinfo on web_userinfo.USERINFO_ID = user_invest.INVEST_USER_ID
+			INNER JOIN products_productsinfo on user_invest.INVEST_PRODICTS_ID = products_productsinfo.PRODUCTSINFO_ID
+		where 1=1 -->
+		
+		
+		SELECT * FROM 
+				`user_invest` ui 
+			INNER JOIN 
+				`web_userinfo` wu 
+			ON 
+				wu.USERINFO_ID = ui.INVEST_USER_ID 
+			INNER JOIN 
+				user_level ul 
+			ON
+				wu.USER_ROLE_ID = ul.LEVEL_ID
+			WHERE 
+				ui.INVEST_STATE!='1' 
+		<if test="pd.PRODUCTSINFO_ID!= null and pd.PRODUCTSINFO_ID	 != ''"><!-- 关键词检索 -->
+			AND 
+				ui.INVEST_PRODICTS_ID =#{pd.PRODUCTSINFO_ID}
+		</if>
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and USER_NICKNAME LIKE CONCAT('%', #{pd.keywords},'%')
+		</if>
+		 
+		 
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			INVEST_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+	
+	<select id="findUser" parameterType="page" resultType="pd">
+		SELECT * FROM 
+			`web_userinfo` u
+		INNER JOIN 
+			user_level ul 
+		ON
+			u.USER_ROLE_ID = ul.LEVEL_ID
+		WHERE 
+			USERINFO_ID 
+		NOT IN (
+			SELECT wu.USERINFO_ID FROM 
+					`user_invest` ui 
+				INNER JOIN 
+					`web_userinfo` wu 
+				ON 
+					wu.USERINFO_ID = ui.INVEST_USER_ID 
+				WHERE 
+					ui.INVEST_STATE != '1' 
+				<if test="pd.PRODUCTSINFO_ID!= null and pd.PRODUCTSINFO_ID	 != ''"><!-- 关键词检索 -->
+					AND ui.INVEST_PRODICTS_ID =#{pd.PRODUCTSINFO_ID}
+				</if>
+				)
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and USER_NICKNAME LIKE CONCAT('%', #{pd.keywords},'%')
+		</if>
+	</select> 
+	
+	
+	<!-- 新增产品用户-->
+	<insert id="guanlianUser" parameterType="pd">
+		INSERT INTO 
+			`user_invest` 
+		VALUES
+		(
+			#{INVEST_ID},
+			#{INVEST_USER_ID},
+			#{PRODUCTSINFO_ID},
+			#{INVEST_CREATETIME},
+			#{INVEST_CREATEBY},
+			#{INVEST_DICTIONARIESID},
+			0
+		);
+	</insert>
+	
+	<!-- 修改 -->
+	<update id="delInvestUser" parameterType="pd">
+		update
+			user_invest
+		set 
+			INVEST_STATE = '1'
+		where 
+			INVEST_ID = #{INVEST_ID}
+		
+	</update>
+</mapper>

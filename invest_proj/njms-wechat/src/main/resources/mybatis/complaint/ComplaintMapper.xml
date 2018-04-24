@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ComplaintMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		COMPLAINT
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		COMPLAINT_ID,
+		TITLE,
+		CONTENT,
+		MEMBER_ID,
+		IMAGE_IDS,
+		TYPE
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{COMPLAINT_ID},
+		#{TITLE},
+		#{CONTENT},
+		#{MEMBER_ID},
+		#{IMAGE_IDS},
+		#{TYPE}
+	</sql>
+
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+		<include refid="Field"></include>
+		) values (
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<select id="findId" parameterType="pd" resultType="pd">
+		SELECT 
+		<include refid="Field"></include>
+		FROM 
+		<include refid="tableName"></include>
+		WHERE MEMBER_ID = #{MEMBER_ID}
+	</select>
+</mapper>

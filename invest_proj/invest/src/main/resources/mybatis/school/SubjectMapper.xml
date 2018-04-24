@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="SubjectMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		SCHOOL_SUBJECT
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		SUBJECT_ID,	
+		SUBJECT_NAME,
+		SUBJECT_COLOR,	
+		MODIFYBY,	
+		MODIFYDATE,	
+		CREATEBY,	
+		CREATEDATE
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{SUBJECT_ID},	
+		#{SUBJECT_NAME},
+		#{SUBJECT_COLOR},	
+		#{MODIFYBY},	
+		#{MODIFYDATE},	
+		#{CREATEBY},	
+		#{CREATEDATE}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SUBJECT_ID = #{SUBJECT_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			SUBJECT_ID = #{SUBJECT_ID},
+			SUBJECT_NAME = #{SUBJECT_NAME},
+			SUBJECT_COLOR=#{SUBJECT_COLOR},
+			MODIFYBY = #{MODIFYBY},
+			MODIFYDATE = #{MODIFYDATE}
+		where 
+		SUBJECT_ID = #{SUBJECT_ID}
+	</update>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			SUBJECT_ID = #{SUBJECT_ID}
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="pd.TEACHER_ID!=null and pd.TEACHER_ID!=''"> <!-- 查询不在此老师的科目 -->
+			and subject_id not in(select subject_id from school_subject_teacher where TEACHER_ID = #{pd.TEACHER_ID})
+		</if>
+		<if test="pd.COURSES_ID!=null and pd.COURSES_ID!=''"> <!-- 查询不在此课程的科目 -->
+			and subject_id not in(select subject_id from school_courses_subject where COURSES_ID = #{pd.COURSES_ID})
+		</if> 
+		order by CREATEDATE desc
+	</select>
+	<!-- 查询科目是否已存在 -->
+	<select id="count" parameterType="pd" resultType="pd">
+		SELECT COUNT(1) FROM SCHOOL_SUBJECT WHERE SUBJECT_NAME=#{SUBJECT_NAME}
+	</select>
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			SUBJECT_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+</mapper>

@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="DictionariesMapper">
+<resultMap type="com.flc.entity.system.Dictionaries" id="dictResultMap">
+	<id column="DICTIONARIES_ID" property="DICTIONARIES_ID" />
+	<result column="NAME" property="NAME" />
+	<result column="PARENT_ID" property="PARENT_ID" />
+</resultMap>
+	<!--表名 -->
+	<sql id="tableName">
+		SYS_DICTIONARIES
+	</sql>
+
+	<!-- 字段 -->
+	<sql id="Field">
+		DICTIONARIES_ID,
+		NAME,
+		NAME_EN,
+		BIANMA,
+		ORDER_BY,
+		PARENT_ID,
+		BZ,
+		TBSNAME
+	</sql>
+
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{DICTIONARIES_ID},
+		#{NAME},
+		#{NAME_EN},
+		#{BIANMA},
+		#{ORDER_BY},
+		#{PARENT_ID},
+		#{BZ},
+		#{TBSNAME}
+	</sql>
+
+	<!-- 新增 -->
+	<insert id="save" parameterType="pd">
+		insert into
+		<include refid="tableName"></include>
+		(
+		<include refid="Field"></include>
+		) values (
+		<include refid="FieldValue"></include>
+		)
+	</insert>
+
+	<!-- 删除 -->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where
+		DICTIONARIES_ID = #{DICTIONARIES_ID}
+	</delete>
+
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set
+		DICTIONARIES_ID = #{DICTIONARIES_ID},
+		NAME = #{NAME},
+		NAME_EN = #{NAME_EN},
+		BIANMA = #{BIANMA},
+		ORDER_BY = #{ORDER_BY},
+		PARENT_ID = #{PARENT_ID},
+		BZ = #{BZ},
+		TBSNAME = #{TBSNAME},
+		DICTIONARIES_ID = DICTIONARIES_ID
+		where
+		DICTIONARIES_ID = #{DICTIONARIES_ID}
+	</update>
+	<!-- 通过编号获取数据 -->
+	<select id="findByBianmaId" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where
+		BIANMA = #{BIANMA}
+	</select>
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where
+		PARENT_ID = #{PARENT_ID}
+	</select>
+	<!-- 通过ID获取数据 -->
+	<select id="findByDictId" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where
+		DICTIONARIES_ID = #{DICTIONARIES_ID}
+	</select>
+
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="pd.PARENT_ID != null and pd.PARENT_ID != ''"><!-- 关键词检索 -->
+			and
+			(
+			<!-- 根据需求自己加检索条件 字段1 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') or 字段2 
+				LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') -->
+			PARENT_ID = #{pd.PARENT_ID}
+			)
+		</if>
+	</select>
+	<!-- 心愿值 -->
+	<select id="count" parameterType="pd" resultType="pd">
+		select
+		 BZ
+		from
+		<include refid="tableName"></include>
+		where
+		PARENT_ID  ='fff64f69f70849998f4e3b74f4cf2358'
+	</select>
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="PARENT_ID != null and PARENT_ID != ''"><!-- 关键词检索 -->
+			and (PARENT_ID = #{PARENT_ID})
+		</if>
+	</select>
+
+
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where
+		DICTIONARIES_ID in
+		<foreach item="item" index="index" collection="array" open="("
+			separator="," close=")">
+			#{item}
+		</foreach>
+	</delete>
+
+	<!--根据产品的模块查询产品的背景图片 -->
+	<select id="selectPropertys" parameterType="pd" resultType="pd">
+		select TYPEIMG_IMGURL from products_typeimg where
+		TYPEIMG_PRODUCTSTYPE_ID = #{PARENT_ID}
+	</select>
+	
+	<!-- 通过ID获取其子级列表 -->
+	<select id="listSubDictByParentId" parameterType="String" resultMap="dictResultMap">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			PARENT_ID = #{parentId} order by ORDER_BY 
+	</select>
+	<!-- 查询所有产品的所有模块产品 -->
+	<select id="selectPropertyCope" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		SYS_DICTIONARIES 
+		where PARENT_ID = #{PARENT_ID}
+			order by ORDER_BY asc
+	</select>
+	<!-- 查询所有产品的所有模块产品 -->
+	<select id="selectProperty" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from
+		SYS_DICTIONARIES INNER JOIN products_productsinfo on sys_dictionaries.DICTIONARIES_ID = products_productsinfo.PRODUCTS_TYPE1_ID
+		where PARENT_ID = #{PARENT_ID} GROUP BY PRODUCTS_TYPE1_ID order by ORDER_BY asc
+	</select>
+	<!--根据产品的模块查询产品的背景图片 -->
+	<select id="selectfindImgId" parameterType="pd" resultType="pd">
+		select * from products_typeimg where
+		products_typeimg.TYPEIMG_PRODUCTSTYPE_ID =
+		(
+		select sys_dictionaries.PARENT_ID from sys_dictionaries where
+		DICTIONARIES_ID =
+		(
+		SELECT products_productsinfo.PRODUCTS_TYPE1_ID from products_productsinfo
+		<if test="PRODUCTSINFO_ID != null and PRODUCTSINFO_ID != ''">
+			where PRODUCTSINFO_ID =#{PRODUCTSINFO_ID}
+		</if>
+		)
+		)
+	</select>
+	
+	<!-- 通过parent_id和student_id、当前时间获取数据 -->
+	<select id="findByIdAndNow" parameterType="pd" resultType="pd">
+		SELECT * FROM sys_dictionaries WHERE PARENT_ID=#{PARENT_ID}
+		AND DICTIONARIES_ID NOT IN (
+		   SELECT wa.`ability_type_id` FROM web_ability wa 
+		   INNER JOIN school_subject_teacher sst ON wa.`subject_id`=sst.`subject_id`
+		   WHERE wa.STUDENT_ID=#{STUDENT_ID}
+		   AND sst.`teacher_id`=#{USER_ID}
+		   AND sst.`subject_id`=#{SUBJECT_ID}
+		   AND TO_DAYS(course_time)=TO_DAYS(#{COURSE_TIME})
+		)
+	</select>
+</mapper>

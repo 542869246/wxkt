@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ShcoolScheduleMapper">
+	
+	<!--表名 -->
+	<sql id="tableName">
+		school_schedule
+	</sql>
+	
+	<!-- 字段 -->
+	<sql id="Field">
+		LESSONS_ID,	
+		LESSON_NAME,	
+		TEACHERS_ID,	
+		COURSE_ID,	
+		CLASSROOM_ID,	
+		LESSON_STARTTIME,	
+		LESSON_ENDTIME,	
+		MODIFYBY,	
+		MODIFYDATE,	
+		CREATEBY,	
+		CREATEDATE
+	</sql>
+	
+	<!-- 字段值 -->
+	<sql id="FieldValue">
+		#{LESSONS_ID},	
+		#{LESSON_NAME},	
+		#{TEACHERS_ID},	
+		#{COURSE_ID},	
+		#{CLASSROOM_ID},	
+		#{LESSON_STARTTIME},	
+		#{LESSON_ENDTIME},	
+		#{MODIFYBY},	
+		#{MODIFYDATE},	
+		#{CREATEBY},	
+		#{CREATEDATE}
+	</sql>
+	
+	<!-- 新增-->
+	<insert id="save" parameterType="pd">
+		insert into 
+	<include refid="tableName"></include>
+		(
+	<include refid="Field"></include>
+		) values (
+	<include refid="FieldValue"></include>
+		)
+	</insert>
+	
+	<!-- 删除-->
+	<delete id="delete" parameterType="pd">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			LESSONS_ID = #{LESSONS_ID}
+	</delete>
+	
+	<!-- 修改 -->
+	<update id="edit" parameterType="pd">
+		update
+		<include refid="tableName"></include>
+		set 
+			LESSONS_ID = #{LESSONS_ID},
+			LESSON_NAME = #{LESSON_NAME},
+			TEACHERS_ID = #{TEACHERS_ID},
+			COURSE_ID = #{COURSE_ID},
+			CLASSROOM_ID = #{CLASSROOM_ID},
+			LESSON_STARTTIME = #{LESSON_STARTTIME},
+			LESSON_ENDTIME = #{LESSON_ENDTIME},
+			MODIFYBY = #{MODIFYBY},
+			MODIFYDATE = #{MODIFYDATE},
+			CREATEBY = #{CREATEBY},
+			CREATEDATE = #{CREATEDATE},
+		LESSONS_ID = LESSONS_ID
+		where 
+		LESSONS_ID = #{LESSONS_ID}
+	</update>
+	<!-- 通过ID获取数据 -->
+	<select id="findById" parameterType="pd" resultType="pd">
+		select 
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 
+			LESSONS_ID = #{LESSONS_ID}
+	</select>
+	
+	<!-- 通过ID获取数据 -->
+	<select id="findByIdMore" parameterType="pd" resultType="pd">
+		select ss.lessons_id,sub.subject_id,sub.subject_name,ss.lesson_starttime,ss.lesson_endtime,su.`NAME`,ss.course_id from school_schedule ss
+inner join sys_user su
+on(su.USER_ID=ss.teachers_id)
+inner JOIN school_subject sub
+on(sub.subject_id=ss.subject_id)
+WHERE ss.lessons_id=#{LESSONS_ID}
+	</select>
+	
+	
+	<!-- 通过教师和当天日期获取数据 -->
+	<select id="findByTeachAndDate" parameterType="pd" resultType="pd">
+				SELECT ss.lessons_id,sub.subject_id,sub.subject_name,ss.lesson_starttime,ss.lesson_endtime,su.`NAME`,ss.`course_id` FROM school_schedule ss
+INNER JOIN sys_user su
+ON(su.USER_ID=ss.teachers_id)
+INNER JOIN school_subject sub
+ON(sub.subject_id=ss.subject_id)
+WHERE teachers_id=#{USER_ID}
+AND lesson_starttime LIKE CONCAT(CONCAT('%', CURDATE()),'%')
+ORDER BY ss.lesson_starttime ASC
+	</select>
+	
+	<select id="findByTeachAndDateTset" parameterType="pd" resultType="pd">
+						SELECT COURSES_NAME,`COURSES_ID` FROM  `school_course` WHERE `courses_id`  IN(
+				SELECT ss.`course_id` AS courses_id FROM school_schedule ss
+INNER JOIN sys_user su
+ON(su.USER_ID=ss.teachers_id)
+INNER JOIN school_subject sub
+ON(sub.subject_id=ss.subject_id)
+WHERE teachers_id=#{USER_ID}
+AND lesson_starttime LIKE CONCAT(CONCAT('%', CURDATE()),'%')
+ORDER BY ss.lesson_starttime ASC
+		)
+	</select>
+	
+	<!-- 列表 -->
+	<select id="datalistPage" parameterType="page" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where 1=1
+		<if test="pd.keywords!= null and pd.keywords != ''"><!-- 关键词检索 -->
+			and
+				(
+				<!--	根据需求自己加检索条件
+					字段1 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%')
+					 or 
+					字段2 LIKE CONCAT(CONCAT('%', #{pd.keywords}),'%') 
+				-->
+				)
+		</if>
+	</select>
+	
+	<!-- 列表(全部) -->
+	<select id="listAll" parameterType="pd" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+	</select>
+	<!-- 根据课程id查询课表 -->
+	<select id="findListByCourseId" parameterType="java.util.List" resultType="pd">
+		select
+		<include refid="Field"></include>
+		from 
+		<include refid="tableName"></include>
+		where
+		COURSE_ID in 
+		<foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+			#{item.COURSE_ID}
+		</foreach>
+	</select>
+	<!-- 批量删除 -->
+	<delete id="deleteAll" parameterType="String">
+		delete from
+		<include refid="tableName"></include>
+		where 
+			LESSONS_ID in
+		<foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+                 #{item}
+		</foreach>
+	</delete>
+	
+<!-- 	根据时间查询课程 -->
+	<select id="findListByTime" parameterType="pd" resultType="pd">
+		select 
+		s.subject_name,s.subject_id
+		from 
+		<include refid="tableName"></include> r
+		inner join 
+		school_subject s on r.`subject_id`=s.`subject_id` 
+		where TO_DAYS(r.`lesson_starttime`)=TO_DAYS(#{leave_date})
+	</select>
+	<!-- 	根据老师id和时间查询当日课程 -->
+	<select id="findByUserIdAndTime" parameterType="pd" resultType="pd">
+		SELECT 
+		sub.`subject_name`,sub.subject_id,ss.*,sc.courses_name,sr.classroom_name
+		FROM 
+		school_schedule ss 
+		inner join school_subject sub on ss.subject_id=sub.subject_id
+		INNER JOIN school_course sc ON ss.`course_id`=sc.`courses_id`
+		INNER JOIN school_classroom sr ON ss.classroom_id=sr.classroom_id
+		WHERE teachers_id=#{USER_ID} 
+		AND TO_DAYS(`lesson_starttime`)=TO_DAYS(#{TODAY})
+		ORDER BY ss.`lesson_starttime`
+	</select>
+
+</mapper>

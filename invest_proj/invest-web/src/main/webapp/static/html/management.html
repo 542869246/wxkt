@@ -1,0 +1,231 @@
+<style>
+.mui-scroll {
+	padding: 10px;
+}
+
+.mui-table-view {
+	background-color: #FFF3DD;
+}
+
+#OA_task_2>.mui-table-view-cell {
+	background-color: #fff;
+	margin-top: 10px;
+	border-radius: 10px;
+}
+
+#OA_task_2>.mui-table-view-cell:after {
+	height: 0px;
+}
+
+#OA_task_2 .mui-slider-handle {
+	height: 90px;
+	/* 	line-height: 35px; */
+}
+.mui-slider-handle>.mui-badge {
+	font-size: 15px;
+	padding: 0px 10px 0px 15px;
+}
+
+h4 {
+	font-size: 14px;
+}
+</style>
+
+<ul id="OA_task_2" class="mui-table-view">
+
+</ul>
+
+<!-- <script type="text/javascript" src="static/wx/js/jquery-1.11.3.min.js"></script> -->
+<script>
+	mui.init();
+		
+	mui('.mui-scroll-wrapper').scroll({
+		deceleration: 0.0005, //flick 减速系数，系数越大，滚动速度越慢，滚动距离越小，默认值0.0006
+		indicators: true //是否显示滚动条
+	});
+	
+	$(function(){
+		var location = (window.location+'').split('/');
+		var basePath = location[0]+'//'+location[2]+'/'+location[3];
+		var url = basePath+'/';
+	
+		function showAll(){
+		
+			$.ajax({
+				
+				url:url+'teacherin/listAll.do?user_id='+$('#user_id').text(),
+				type: "post",
+				dataType: 'json',
+				async: true,
+				success:function(res){
+					
+					var str=``
+					var strta=''
+					$(res).each(function(index,item){
+						var da = item.ARRIVELEAVETIME;
+	    				da = new Date(da);
+	    				var year = da.getFullYear();
+	   				 	var month = p(da.getMonth()+1);
+	  					var date = p(da.getDate());
+	  					var hour = p(da.getHours())
+	 					var min = p(da.getMinutes())
+	  					var sec = p(da.getSeconds())
+	  					var date = [year,month,date].join('-')+' '+[hour,min,sec].join(':') 
+						
+						str+=`<li class="mui-table-view-cell mui-transitioning" >
+							<div class="mui-slider-right mui-disabled">
+							<a class="mui-btn mui-btn-warning" style="transform: translate(0px, 0px);" lid=${item.SCHEDULE_ID} ste="0">通过</a>
+						</div>
+							<div class="mui-slider-left mui-disabled">
+							<a class="mui-btn mui-btn-warning" style="transform: translate(0px, 0px);" lid=${item.SCHEDULE_ID} ste="2">驳回</a>
+						</div>
+						
+							<div class="mui-slider-handle">
+								<div class="mui-table">
+							<div class="mui-table-cell mui-col-xs-10">
+							<h4 class="mui-ellipsis">学生姓名：${item.STUDENT_NAME}</h4>
+	
+							</div>
+								</div>
+								<div class="mui-table">
+								<div class="mui-table-cell mui-col-xs-5">
+								<p class="mui-h6 mui-ellipsis">科目名称:${item.SUBJECT_NAME}</p>
+								<p class="mui-h6 mui-ellipsis">当前状态:${item.STATE==1?'未通过':'通过'}
+								
+								</p>`
+							if(item.SCHEDULE_TASKTYPE=='zylr'){
+								strta='上课内容'
+								str+=`<p class="mui-h6 mui-ellipsis">学习内容:${item.SCHEDULE_CONTENT }</p>`
+								
+							}else if(item.SCHEDULE_TASKTYPE=='zyys'){
+								strta='课后小结'
+									str+=`<p class="mui-h6 mui-ellipsis">学习内容:${item.SCHEDULE_CONTENT }</p>`
+							}else if(item.SCHEDULE_TASKTYPE=='dzsj'){
+								strta='到达时间'
+									str+=`<p class="mui-h6 mui-ellipsis">到达时间:${date}</p>`
+							} else{
+								strta='离开时间'
+								str+=`<p class="mui-h6 mui-ellipsis">离开时间:${date}</p>`
+
+								
+							}
+							
+									str+=`</div>
+								<div class="mui-table-cell mui-col-xs-5">
+								<p class="mui-h6 mui-ellipsis">课程名称:
+									${strta}
+								</p>
+								<p class="mui-h6 mui-ellipsis">学习时长:${item.SCHEDULE_TIMEDIFF}</p>`
+								 if(item.SCHEDULE_TASKTYPE=='zyys'){
+									 str+=`<p class="mui-h6 mui-ellipsis">是否达标:${item.SCHEDULE_ADOPT==1?'达标':'未达标'}</p>`
+								 }
+									 str+=`</div>
+									</div>
+							</div>
+					</li>`
+						
+						
+						
+					})
+					if(res.length==0){
+						str=`<br/><center><p>无数据</p></center>`
+					}
+					$('#OA_task_2').html(str)
+					$('#dailytouch').show()
+				}
+			})
+		}
+		
+		showAll()
+		var elem;
+		var li;
+		 //第一个demo，拖拽后显示操作图标，点击操作图标删除元素；
+		$('#OA_task_2').on('tap', '.mui-btn', function(event) {
+			elem = this;
+			li = elem.parentNode.parentNode;		
+			console.log($(elem).attr('lid'));
+			$.ajax({
+				url:url+'teacherin/editsatas.do',
+				data:{"SCHEDULE_ID":$(elem).attr('lid'),"STATE":$(elem).attr('ste')},
+				type:'post',
+				dataType: 'json',
+				success:function(data){
+					if(data==1){
+						showAll();
+						
+					}else
+						{
+						
+						alert("失败")
+						}
+				}
+				
+				
+			})
+			
+		}); 
+		var user_id=$('#user_id').text();
+		
+		$('#addDaily').click(function(){
+			console.log(user_id);
+			mui('.mui-popover').popover('hide',document.getElementById("dailytouch"));
+			var $adddailyHtml = $.ajax({
+				url:url+'static/html/adddaily.html',
+				dataType: 'html'
+			});
+			
+			var $adddailyInfo= $.ajax({
+				url:url+'teacherin/addsatas.do',
+				data:{"USER_ID":user_id},
+				type:'post',
+				dataType: 'json'
+			});
+			$.when($adddailyHtml,$adddailyInfo)
+			.done(function(item1,item2){
+				//吧页面加载到主页面 赋值
+				$('#dailytouch').hide()
+				$('#item1mobile').find('.mui-scroll').html(item1[0])
+				
+				
+				var opt="<option value='0'>请选择课程</option>"
+				$(item2[0].courses).each(function(item){
+					var sch=item2[0].courses[item]
+					opt+="<option value="+sch.COURSES_ID+">"+sch.COURSES_NAME+"</option>"
+				})
+				
+				$('#coursesel').html(opt)
+				
+				var opt1="<option value='0'>请选择作业类型</option>"
+				$(item2[0].schList).each(function(item){
+					var sch=item2[0].schList[item]
+					console.log(sch);
+					opt1+="<option value="+sch.bianma+">"+sch.name+"</option>"
+				})
+				
+				$('#SCHEDULE_TASKTYPE').html(opt1)
+				
+				
+				
+			}).fail(function(){
+				
+				alert("出错啦！");
+			})
+			
+			/* $.ajax({
+				url:url+'static/html/adddaily.html',
+				dataType: 'html'
+			}).done(function(res){
+				$('#item1mobile').find('.mui-scroll').html(res)
+				$('#dailytouch').hide()
+			}).fail(function(){
+				alert("出错啦！")
+			}) */
+		})
+		
+		
+		$('#flushDailyList').click(function(){
+			mui('.mui-popover').popover('hide',document.getElementById("dailytouch"));
+			showAll()
+		})
+	})
+</script>
