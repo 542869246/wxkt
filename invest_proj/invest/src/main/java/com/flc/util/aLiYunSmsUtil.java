@@ -33,10 +33,6 @@ public class aLiYunSmsUtil {
 	// 产品域名,开发者无需替换
 	static final String domain = "dysmsapi.aliyuncs.com";
 
-	// TODO 此处需要替换成开发者自己的AK(在阿里云访问控制台寻找)
-	// static final String accessKeyId = "LTAIVbVyzUQbMYCT";
-	// static final String accessKeySecret = "i9Sx7dRPMheIQPjRpOB8jJvLBQNW3K";
-
 	public static SendSmsResponse sendSms(String phone, String signName, String tecode, String teparam,
 			String accessKeyId, String accessKeySecret) throws ClientException {
 
@@ -172,39 +168,6 @@ public class aLiYunSmsUtil {
 	}
 
 	public static void main(String[] args) {
-		String signName = null;
-		String tecode = null;
-		String accessKeyId = null;
-		String accessKeySecret = null;
-		// signName = "李氏集团";
-		// tecode = "SMS_122287945";
-		// accessKeyId = "LTAI3S0nQ6MR0Tmi";
-		// accessKeySecret = "BTOQPhmFc0b0pxA3upoPBpYfId5ip9";
-		signName = "Z集团";
-		tecode = "SMS_127151988";
-		accessKeyId = "LTAIlR9jHzznr1sv";
-		accessKeySecret = "RWlH1MSw6PDKhB90kC1jcPuWJnvcJq";
-		Random r = new Random();
-		String str = "";
-		String str2 = "";
-		for (int i = 0; i < 4; i++) {
-			str += r.nextInt(10);
-		}
-		for (int i = 0; i < 8; i++) {
-			str2 += r.nextInt(10);
-		}
-		String teparam = "{\"code\":\"" + str + "\",\"pwd\":\"" + str2 + "\"}";
-
-		SendSmsResponse response = null;
-		try {
-			response = sendSms("13913016783", signName, tecode, teparam, accessKeyId, accessKeySecret);
-			if (response.getCode() != null && response.getCode().equals("OK")) {
-				System.out.println("发送成功");
-			} else {
-				System.out.println("11111");
-			}
-		} catch (Exception e) {
-		}
 
 	}
 }
